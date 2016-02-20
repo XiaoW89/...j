@@ -6,30 +6,36 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//……读取数据信息……//
+	//……Preparing data……//
 	std::string dr = "F:\\test";
 	_MyData* md = new _MyData;
 	{
-		//读取形状
+		//Loading data
 		md->_DataLoading(dr, "jpg", md);
 
-		//得到bbox
+		//Acquiring BBox
 		md->_GetBbox(md->_gtShape, cv::Scalar(0, 0, 0, 0), md->_bbox_origial);
 
-		//计算meanshape
+		//Calculating Meanshape
 		md->_CalcMeanshape();
 	}
 	
-	//……参数设置……//
+	//……Parameters Setting……//
 	_Parameters pm;
 	{
 		pm._L = 51;
 		pm._T = 5;
 		pm._N = 2000;
 		pm._K = pm._N / pm._T;
+
+		pm._np = md->_labels["POSITIVE"].size();
+		pm._nn = pm._np * 10;
+
+
 	}
 
-	//……训练……//
+	//……Train JDA……//
+
 
 	std::cout << std::endl;
 	return 0;

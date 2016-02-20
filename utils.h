@@ -57,10 +57,17 @@ public:
 
 struct _Parameters
 {
+	//Parameters listed in paper
 	uint16 _L;
 	uint16 _T;
 	uint16 _N;
 	uint16 _K;
+
+	//
+	uint32 _nn;  //# of negative sample
+	uint32 _np;  //# of positive sample
+
+
 };
 
 
