@@ -6,7 +6,7 @@ using namespace std;
 
 
 
-void _MyData::_DataLoading(const string& path, const string& type, _MyData* md)
+void MYDATA::_DataLoading(const string& path, const string& type, MYDATA* md)
 {
 	static int path_index = 0; //用来修改样本标签的
 	static int class_index = -1;
@@ -42,6 +42,10 @@ void _MyData::_DataLoading(const string& path, const string& type, _MyData* md)
 			{
 				md->_imagsPath[md->_dname[path_index - 1]].push_back(path + "\\" + filefind.name);
 				md->_labels[md->_dname[path_index - 1]].push_back(class_index);
+
+				cv::Mat img = cv::imread(path + "\\" + filefind.name, 0);
+				IMGPROPERTY ip(img.cols, img.rows);
+				md->_imagsProperty[md->_dname[path_index - 1]].push_back(ip);
 			}
 			if (substr == "pts")
 			{
@@ -52,7 +56,7 @@ void _MyData::_DataLoading(const string& path, const string& type, _MyData* md)
 	}
 	_findclose(handle);
 }
-cv::Mat_<float>  _MyData::_ReadPts(const string& ptsName, const string& type, const int npt)
+cv::Mat_<float>  MYDATA::_ReadPts(const string& ptsName, const string& type, const int npt)
 {
 	cv::Mat_<float> shape(npt, 2);
 	string flag;
@@ -136,17 +140,17 @@ cv::Mat_<float>  _MyData::_ReadPts(const string& ptsName, const string& type, co
 	ifs.close();
 	return shape;
 }
-_MyData::~_MyData()
+MYDATA::~MYDATA()
 {
 	ReleaseVec<string>(_dname);
 	ReleaseVec<cv::Mat_<float>>(_gtShape);
 	_imagsPath.clear();
 	_labels.clear();
 }
-void _MyData::_GetBbox(const vector<cv::Mat_<float>>& shape, const cv::Scalar_<float>& factor, vector<_BBOX>& bbox_origial)
+void MYDATA::_GetBbox(const vector<cv::Mat_<float>>& shape, const cv::Scalar_<float>& factor, vector<BBOX>& bbox_origial)
 {
 	std::vector<cv::Rect>faces;
-	_BBOX validBbox;
+	BBOX validBbox;
 	for (uint16 i = 0; i < shape.size(); i++)
 	{
 		faces.clear();
@@ -162,7 +166,7 @@ void _MyData::_GetBbox(const vector<cv::Mat_<float>>& shape, const cv::Scalar_<f
 		bbox_origial.push_back(validBbox);
 	}
 }
-void _MyData::_CalcMeanshape()
+void MYDATA::_CalcMeanshape()
 {
 	_Meanshape.create(_gtShape[0].rows , 2);
 	for (int i = 0; i < _gtShape.size(); i++)
@@ -184,7 +188,7 @@ void drawFeatureP(cv::Mat& image, const cv::Rect& faceRegion, const cv::Mat_<flo
 		cv::rectangle(image, faceRegion, cv::Scalar(255, 0, 0));
 }
 
-void maxminVec(const cv::Mat_<float>& shape, _BBOX& wh)
+void maxminVec(const cv::Mat_<float>& shape, BBOX& wh)
 {
 	double* min_x = (double*)malloc(sizeof(double) * 2);
 	double* max_x = (double*)malloc(sizeof(double) * 2);
@@ -232,7 +236,7 @@ void normeImage(const cv::Mat& image, cv::Mat_<float>& bbox, cv::Mat& normedImag
 	//	float borderBottom = 0.5*image.rows;
 	//	copyMakeBorder(extendedImage, extendedImage, borderTop, borderBottom, borderLeft, borderRight, cv::BORDER_REPLICATE);
 }
-cv::Mat_<float> ProjectShape(const cv::Mat_<float>& x, const cv::Mat_<float>& y, const _BBOX& bbox)
+cv::Mat_<float> ProjectShape(const cv::Mat_<float>& x, const cv::Mat_<float>& y, const BBOX& bbox)
 {
 	cv::Mat_<float> results(x.rows, 2);
 	for (int i = 0; i < x.rows; i++)
@@ -242,7 +246,7 @@ cv::Mat_<float> ProjectShape(const cv::Mat_<float>& x, const cv::Mat_<float>& y,
 	}
 	return results;
 }
-cv::Mat_<float> ReProjection(const cv::Mat_<float>& meanShape, const _BBOX& bbox, const cv::Scalar_<float> factor)
+cv::Mat_<float> ReProjection(const cv::Mat_<float>& meanShape, const BBOX& bbox, const cv::Scalar_<float> factor)
 {
 	cv::Mat_<double> results(meanShape.rows, 2);
 	for (int i = 0; i < meanShape.rows; i++){
@@ -371,3 +375,4 @@ cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::
 	std::cout << "在整个样本集上的RMSE为: " << "（像素为单位） :" << mean_error / err.cols << endl;
 	return err;
 }
+

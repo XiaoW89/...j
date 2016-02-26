@@ -1,25 +1,28 @@
 #pragma once
 #include "utils.h"
+#include "randomforest.h"
 
 class JDA
 {
 private:
-	_Parameters _pm;
+	PARAMETERS _pm;
 	cv::Mat_<float> _weights_neg;
 	cv::Mat_<float> _weights_pos;
 
-	std::list<float> _score_neg;
-	std::list<float> _score_pos;
+	std::deque<float> _score_neg;
+	std::deque<float> _score_pos;
 
-	Dt JDA::GeNegSamp(const _MyData* const md);
+	DT GeNegSamp(MYDATA* const md);
+	void AsignWeight(DT& dt){ dt._weight = exp(-1 * dt._lable* dt._score); };
+	void LearnCRTrees(const std::deque<DT>& p_dt, const std::deque<DT>& n_dt, const PARAMETERS& pm);
 	
 
 public:
 	JDA();
-	JDA(const _Parameters&);
+	JDA(const PARAMETERS&);
 	~JDA();
 
-	void train(const _MyData* md);
+	void train(MYDATA* const md);
 
 };
 
