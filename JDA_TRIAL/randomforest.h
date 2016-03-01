@@ -43,12 +43,13 @@ public:
 		const std::vector<cv::Mat_<double> >& rotations_negsample, const std::vector<cv::Mat_<double> >& rotations_possample,
 		const std::vector<double>& scales_negsample, const std::vector<double>& scales_possample);
 
-	Node* BuildTree(std::set<int>& selected_indexes_pos, std::set<int>& selected_indexes_neg,
-		std::vector<int>& images_indexes_pos, std::vector<int>& images_indexes_neg, int current_depth,
-		std::deque<DT>& p_dt, std::deque<DT>& n_dt);
+	Node* BuildCRTree(std::set<int>& selected_ft_indexes,std::vector<int>& images_indexes_pos, 
+		std::vector<int>& images_indexes_neg, int current_depth, std::deque<DT>& p_dt, std::deque<DT>& n_dt);
 
-	int FindSplitFeature(Node* node, std::set<int>& selected_indexes,
-		cv::Mat_<int>& pixel_differences, std::vector<int>& images_indexes, std::vector<int>& left_indexes, std::vector<int>& right_indexes);
+	int FindSplitFeature(Node* node, std::set<int>& selected_ft_indexes, std::vector<int>& images_indexes_pos,
+		std::vector<int>& images_indexes_neg, std::vector<int>& left_indexes_pos,
+		std::vector<int>& left_indexes_neg, std::vector<int>& right_indexes_pos, std::vector<int>& right_indexes_neg,
+		CorR corr, const std::deque<DT>& p_dt, const std::deque<DT>& n_dt)
 
 	cv::Mat_<double> GetBinaryFeatures(const cv::Mat_<double>& image,
 		const BoundingBox& bbox, const cv::Mat_<double>& current_shape, const cv::Mat_<double>& rotation, const double& scale);

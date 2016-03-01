@@ -82,13 +82,13 @@ bool RandomForest::TrainForest(MYDATA* const md,  std::deque<DT>& p_dt,  std::de
 		int end_index_neg = n_sample_neg - (_trees_num_per_forest - i - 1)*step_neg;
 		int end_index_pos = n_sample_pos - (_trees_num_per_forest - i - 1)*step_pos;
 
-		std::set<int> selected_indexes_neg, selected_indexes_pos;
+		std::set<int> selected_indexes; //used for storing features' index when perform node-split 
 		std::vector<int> images_indexes_neg, images_indexes_pos;
 		for (int j = start_index_pos; j < end_index_pos; j++){ images_indexes_pos.push_back(j); }
 		for (int j = start_index_neg; j < end_index_neg; j++){ images_indexes_neg.push_back(j); }
 
-		Node* root = BuildTree(selected_indexes_pos, selected_indexes_neg,
-			images_indexes_pos, images_indexes_neg, 0, p_dt, n_dt);
+		Node* root = BuildCRTree(selected_indexes,images_indexes_pos, images_indexes_neg, 
+			0, p_dt, n_dt);
 		_trees.push_back(root);
 	}
 	/*int count = 0;
@@ -101,9 +101,8 @@ bool RandomForest::TrainForest(MYDATA* const md,  std::deque<DT>& p_dt,  std::de
 }
 
 
-Node* RandomForest::BuildTree(std::set<int>& selected_indexes_pos, std::set<int>& selected_indexes_neg,
-	std::vector<int>& images_indexes_pos, std::vector<int>& images_indexes_neg, int current_depth,
-	std::deque<DT>& p_dt, std::deque<DT>& n_dt)
+Node* RandomForest::BuildCRTree(std::set<int>& selected_indexes, std::vector<int>& images_indexes_pos,
+	std::vector<int>& images_indexes_neg, int current_depth, std::deque<DT>& p_dt, std::deque<DT>& n_dt)
 {
 	int n_sample_neg = images_indexes_neg.size();
 	int n_sample_pos = images_indexes_pos.size();
@@ -117,7 +116,8 @@ Node* RandomForest::BuildTree(std::set<int>& selected_indexes_pos, std::set<int>
 		Node* node = new Node();
 		node->_depth = current_depth;
 		node->_samples = n_sample_pos+n_sample_neg;
-		std::vector<int> left_indexes, right_indexes;
+		std::vector<int> left_image_indexes_pos, right_image_indexes_pos, 
+			left_image_indexes_neg, right_image_indexes_neg;
 		if (current_depth == _tree_depth){ // the node reaches max depth
 			node->_is_leaf = true;
 			node->_leaf_identity = _all_leaf_nodes;
@@ -125,7 +125,12 @@ Node* RandomForest::BuildTree(std::set<int>& selected_indexes_pos, std::set<int>
 			return node;
 		}
 
-		int ret = FindSplitFeature(node, selected_indexes, pixel_differences, images_indexes, left_indexes, right_indexes);
+
+		int ret = FindSplitFeature(node, selected_indexes, images_indexes_pos,
+			images_indexes_neg, left_image_indexes_pos, left_image_indexes_neg, right_image_indexes_pos,
+			right_image_indexes_neg, type_split, p_dt, n_dt);
+
+	
 		// actually it won't enter the if block, when the random function is good enough
 		if (ret == 1){ // the current node contain all sample when reaches max variance reduction, it is leaf node
 			node->_is_leaf = true;
@@ -134,8 +139,10 @@ Node* RandomForest::BuildTree(std::set<int>& selected_indexes_pos, std::set<int>
 			return node;
 		}
 		//if (current_depth + 1 < tree_depth_){
-		node->_left_child = BuildTree(selected_indexes, pixel_differences, left_indexes, current_depth + 1);
-		node->_right_child = BuildTree(selected_indexes, pixel_differences, right_indexes, current_depth + 1);
+		node->_left_child = BuildCRTree(selected_indexes,right_image_indexes_pos, 
+			right_image_indexes_neg, current_depth + 1, p_dt, n_dt);
+		node->_right_child = BuildCRTree(selected_indexes,left_image_indexes_pos, 
+			left_image_indexes_neg, current_depth + 1, p_dt, n_dt);
 		//}
 		return node;
 	}
@@ -145,111 +152,174 @@ Node* RandomForest::BuildTree(std::set<int>& selected_indexes_pos, std::set<int>
 }
 
 
-int RandomForest::FindSplitFeature(Node* node, std::set<int>& selected_indexes, cv::Mat_<int>& pixel_differences,
-	std::vector<int>& images_indexes, std::vector<int>& left_indexes, std::vector<int>& right_indexes)
+int RandomForest::FindSplitFeature(Node* node, std::set<int>& selected_ft_indexes, std::vector<int>& images_indexes_pos,
+	std::vector<int>& images_indexes_neg, std::vector<int>& left_indexes_pos,
+	std::vector<int>& left_indexes_neg, std::vector<int>& right_indexes_pos, std::vector<int>& right_indexes_neg,
+	CorR corr, const std::deque<DT>& p_dt, const std::deque<DT>& n_dt)
 {
 	std::vector<int> val;
 	//cv::Mat_<int> sorted_fea;
 	int threshold; 
 	double var = -DBL_MAX;
+	double entrp = -DBL_MAX;
 	int feature_index = -1;
-	std::vector<int> tmp_left_indexes, tmp_right_indexes;
+	std::vector<int> tmp_left_indexes_pos, tmp_right_indexes_pos, tmp_left_indexes_neg, tmp_right_indexes_neg;
 	//int j = 0, tmp_index;
+
+	int n_p = images_indexes_pos.size();
+	int n_n = images_indexes_neg.size();
 	for (int j = 0; j < _local_features_num; j++)
 	{
-		if (selected_indexes.find(j) == selected_indexes.end())
+		if (selected_ft_indexes.find(j) == selected_ft_indexes.end()) //如果j不在容器里面就执行操作
 		{
-			tmp_left_indexes.clear();
-			tmp_right_indexes.clear();
-			double var_lc = 0.0, var_rc = 0.0, var_red = 0.0;
-			double Ex_2_lc = 0.0, Ex_lc = 0.0, Ey_2_lc = 0.0, Ey_lc = 0.0;
-			double Ex_2_rc = 0.0, Ex_rc = 0.0, Ey_2_rc = 0.0, Ey_rc = 0.0;
+			tmp_left_indexes_pos.clear();
+			tmp_right_indexes_pos.clear();
 
-			// random generate threshold
-			std::vector<int> data;
-			data.reserve(images_indexes.size());
-			for (int i = 0; i < images_indexes.size(); i++){
-				data.push_back(pixel_differences(j, images_indexes[i]));
-			}
-			std::sort(data.begin(), data.end());
-			int tmp_index = floor((int)(images_indexes.size()*(0.5 + 0.9*(rd.uniform(0.0, 1.0) - 0.5))));
-			int tmp_threshold = data[tmp_index];
-			for (int i = 0; i < images_indexes.size(); i++)
+			//I am training regression nodes with positive samples only
+			if (REGRESSION == corr) //For Regression Node
 			{
-				int index = images_indexes[i];
-				if (pixel_differences(j, index) < tmp_threshold)
-				{
-					tmp_left_indexes.push_back(index);
-					// do with regression target
-					double value = _regression_targets->at(index)(_landmark_index, 0);
-					Ex_2_lc += pow(value, 2);
-					Ex_lc += value;
-					value = _regression_targets->at(index)(_landmark_index, 1);
-					Ey_2_lc += pow(value, 2);
-					Ey_lc += value;
+				double var_lc = 0.0, var_rc = 0.0, var_red = 0.0;
+				double Ex_2_lc = 0.0, Ex_lc = 0.0, Ey_2_lc = 0.0, Ey_lc = 0.0;
+				double Ex_2_rc = 0.0, Ex_rc = 0.0, Ey_2_rc = 0.0, Ey_rc = 0.0;
+
+				// random generate threshold (****Need be modifed)
+				std::vector<int> data; 
+				data.reserve(n_p);
+				for (int i = 0; i < n_p; i++){
+					data.push_back(p_dt[images_indexes_pos[i]]._pixDiffFeat(j));
 				}
+				std::sort(data.begin(), data.end());
+				int tmp_index = floor((int)(n_p*(0.5 + 0.9*(RandNumberUniform<float>(0.0, 1.0) - 0.5))));
+				int tmp_threshold = data[tmp_index];
+				for (int i = 0; i < n_p; i++)
+				{
+					int index = images_indexes_pos[i];
+					if ((p_dt[index]._pixDiffFeat(j) < tmp_threshold))
+					{
+						tmp_left_indexes_pos.push_back(index);
+						// do with regression target
+						double value = _regression_targets->at(index)(_landmark_index, 0);
+						Ex_2_lc += pow(value, 2);//左集合中x^2的期望
+						Ex_lc += value; //左集合中x的期望
+						value = _regression_targets->at(index)(_landmark_index, 1);
+						Ey_2_lc += pow(value, 2);
+						Ey_lc += value;
+					}
+					else
+					{
+						tmp_right_indexes_pos.push_back(index);
+						double value = _regression_targets->at(index)(_landmark_index, 0);
+						Ex_2_rc += pow(value, 2);
+						Ex_rc += value;
+						value = _regression_targets->at(index)(_landmark_index, 1);
+						Ey_2_rc += pow(value, 2);
+						Ey_rc += value;
+					}
+				}
+
+				if (tmp_left_indexes_pos.size() == 0){ var_lc = 0.0; }
 				else
 				{
-					tmp_right_indexes.push_back(index);
-					double value = _regression_targets->at(index)(_landmark_index, 0);
-					Ex_2_rc += pow(value, 2);
-					Ex_rc += value;
-					value = _regression_targets->at(index)(_landmark_index, 1);
-					Ey_2_rc += pow(value, 2);
-					Ey_rc += value;
+					var_lc = Ex_2_lc / tmp_left_indexes_pos.size() - pow(Ex_lc / tmp_left_indexes_pos.size(), 2)
+						+ Ey_2_lc / tmp_left_indexes_pos.size() - pow(Ey_lc / tmp_left_indexes_pos.size(), 2);  //x坐标的方差加上y坐标的方差
+				}
+
+				if (tmp_right_indexes_pos.size() == 0){ var_rc = 0.0;}
+				else
+				{
+					var_rc = Ex_2_rc / tmp_right_indexes_pos.size() - pow(Ex_rc / tmp_right_indexes_pos.size(), 2)
+						+ Ey_2_rc / tmp_right_indexes_pos.size() - pow(Ey_rc / tmp_right_indexes_pos.size(), 2);
+				}
+
+				var_red = -var_lc*tmp_left_indexes_pos.size() - var_rc*tmp_right_indexes_pos.size();//这四个量均是非负，因此var_red非正
+				if (var_red > var) //这里用的是最小均方差LSD，主要是希望类内方差小
+				{
+					var = var_red;
+					threshold = tmp_threshold;
+					feature_index = j;
+					left_indexes_pos = tmp_left_indexes_pos;
+					right_indexes_pos = tmp_right_indexes_pos;
+					left_indexes_neg = right_indexes_neg =  images_indexes_neg; //原封不动的送入下一层
 				}
 			}
-
-			if (tmp_left_indexes.size() == 0)
-			{ 
-				var_lc = 0.0;
-			} 
-			else
+			else //For classification node
 			{
-				var_lc = Ex_2_lc / tmp_left_indexes.size() - pow(Ex_lc / tmp_left_indexes.size(), 2)
-					+ Ey_2_lc / tmp_left_indexes.size() - pow(Ey_lc / tmp_left_indexes.size(), 2);
-			}
+				// random generate threshold (****Need be modifed)
+				std::vector<int> data;
+				data.reserve(p_dt.size() + n_dt.size());
+				for (int i = 0; i < p_dt.size(); i++){
+					data.push_back(p_dt[images_indexes_pos[i]]._pixDiffFeat(j));
+				}
+				for (int i = 0; i < n_dt.size(); i++){
+					data.push_back(n_dt[images_indexes_neg[i]]._pixDiffFeat(j));
+				}
 
-			if (tmp_right_indexes.size() == 0)
-			{
-				var_rc = 0.0;
-			} 
-			else
-			{
-				var_rc = Ex_2_rc / tmp_right_indexes.size() - pow(Ex_rc / tmp_right_indexes.size(), 2)
-					+ Ey_2_rc / tmp_right_indexes.size() - pow(Ey_rc / tmp_right_indexes.size(), 2);
-			}
+				std::sort(data.begin(), data.end());
+				int tmp_index = floor((int)(data.size()*(0.5 + 0.9*(RandNumberUniform<float>(0.0, 1.0) - 0.5))));
+				int tmp_threshold = data[tmp_index];
 
+				for (int i = 0; i < n_p; i++)
+				{
+					int index = images_indexes_pos[i];
+					if ((p_dt[index]._pixDiffFeat(j) < tmp_threshold)){ tmp_left_indexes_pos.push_back(index); }
+					else{ tmp_right_indexes_pos.push_back(index); }
+				}
+				for (int i = 0; i < n_n; i++)
+				{
+					int index = images_indexes_neg[i];
+					if ((n_dt[index]._pixDiffFeat(j) < tmp_threshold)){ tmp_left_indexes_neg.push_back(index); }
+					else{ tmp_right_indexes_neg.push_back(index); }
+				}
 
-			var_red = -var_lc*tmp_left_indexes.size() - var_rc*tmp_right_indexes.size();
-			if (var_red > var)
-			{
-				var = var_red;
-				threshold = tmp_threshold;
-				feature_index = j;
-				left_indexes = tmp_left_indexes;
-				right_indexes = tmp_right_indexes;
+				int n_n_l = tmp_left_indexes_neg.size();
+				int n_n_r = tmp_right_indexes_neg.size();
+				int n_p_l = tmp_left_indexes_pos.size();
+				int n_p_r = tmp_right_indexes_pos.size();
+
+				double entrp_root = -(n_n / (n_n + n_p))*log((n_n / (n_n + n_p))) - (n_p / (n_n + n_p))*log((n_p / (n_n + n_p)));
+				double entrp_l = -(n_n_l / (n_n_l + n_p_l))*log((n_n_l / (n_n_l + n_p_l))) - (n_p_l / (n_n_l + n_p_l))*log((n_p_l / (n_n_l + n_p_l)));
+				double entrp_r = -(n_n_r / (n_n_r + n_p_r))*log((n_n_r / (n_n_r + n_p_r))) - (n_p_r / (n_n_r + n_p_r))*log((n_p_r / (n_n_r + n_p_r)));
+
+				double inform_gain = entrp_root - (n_n_l + n_p_l)*entrp_l / (n_n + n_p) - (n_n_r + n_p_r)*entrp_r / (n_n + n_p);
+
+				if (inform_gain > entrp) //这里用的是最小均方差LSD，主要是希望类内方差小
+				{
+					entrp = inform_gain;
+					threshold = tmp_threshold;
+					feature_index = j;
+					left_indexes_pos = tmp_left_indexes_pos;
+					right_indexes_pos = tmp_right_indexes_pos;
+					left_indexes_neg = tmp_left_indexes_neg;
+					right_indexes_neg = tmp_right_indexes_neg; //原封不动的送入下一层
+				}
 			}
 		}
 	}
 
 	if (feature_index != -1) // actually feature_index will never be -1 
 	{
-		if (left_indexes.size() == 0 || right_indexes.size() == 0)
+		if (0 == (left_indexes_neg.size()+ left_indexes_pos.size()) || 
+			0 == (right_indexes_neg.size()+ right_indexes_pos.size()))
 		{
+			std::cout << "Waring: this node contain all the samples" << std::endl;
 			node->_is_leaf = true; // the node can contain all the samples
 			return 1;
 		}
+
 		node->_threshold = threshold;
 		node->_thre_changed = true;
 		node->_feature_locations = _local_position[feature_index];
-		selected_indexes.insert(feature_index);
-		//node->_cor = REGRESSION;
+		selected_ft_indexes.insert(feature_index);
+		if (REGRESSION == corr) 
+			node->_cor = REGRESSION;
+		else 
+			node->_cor = CLASSIFICATION;
+
 		return 0;
 	}
-	
 	return -1;
 }
+
 
 int RandomForest::MarkLeafIdentity(Node* node, int count){
 	std::stack<Node*> s;
