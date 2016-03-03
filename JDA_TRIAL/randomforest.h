@@ -19,10 +19,16 @@ public:
 	double _threshold;
 	bool _thre_changed;
 	CorR _cor;
+	double _cscore;
 	FeatureLocations _feature_locations;
 	Node(Node* left, Node* right, double thres, bool leaf);
 	Node(Node* left, Node* right, double thres);
 	Node();
+
+	float _Precision;
+	float _Recall;
+	float _Fscore;
+	float _theta; //used for removing samples whos _cscore<_theta, and this value is acquired according to orecision-recall rate;
 };
 
 class RandomForest {
@@ -43,13 +49,12 @@ public:
 		const std::vector<cv::Mat_<double> >& rotations_negsample, const std::vector<cv::Mat_<double> >& rotations_possample,
 		const std::vector<double>& scales_negsample, const std::vector<double>& scales_possample);
 
-	Node* BuildCRTree(std::set<int>& selected_ft_indexes,std::vector<int>& images_indexes_pos, 
-		std::vector<int>& images_indexes_neg, int current_depth, std::deque<DT>& p_dt, std::deque<DT>& n_dt);
+	Node* BuildCRTree(std::set<int>& selected_ft_indexes,int current_depth, std::deque<DT>& p_dt, 
+		std::deque<DT>& n_dt);
 
-	int FindSplitFeature(Node* node, std::set<int>& selected_ft_indexes, std::vector<int>& images_indexes_pos,
-		std::vector<int>& images_indexes_neg, std::vector<int>& left_indexes_pos,
-		std::vector<int>& left_indexes_neg, std::vector<int>& right_indexes_pos, std::vector<int>& right_indexes_neg,
-		CorR corr, const std::deque<DT>& p_dt, const std::deque<DT>& n_dt)
+	int FindSplitFeature(Node* node, std::set<int>& selected_ft_indexes, std::deque<DT>& left_pos,
+		std::deque<DT>& left_neg, std::deque<DT>& right_pos, std::deque<DT>& right_neg,
+		CorR corr, const std::deque<DT>& p_dt, const std::deque<DT>& n_dt);
 
 	cv::Mat_<double> GetBinaryFeatures(const cv::Mat_<double>& image,
 		const BoundingBox& bbox, const cv::Mat_<double>& current_shape, const cv::Mat_<double>& rotation, const double& scale);
@@ -77,7 +82,12 @@ public:
 
 	void GeneratePixelDiff(MYDATA* const md, std::deque<DT>& dt);
 
+private:
 	CorR Split_Type(const int stage);
+
+	void AssignCScore_Node(Node* nd, std::deque<DT>& p_dt, std::deque<DT>& n_dt);
+
+	void getCscore_singleTress(Node* nd, DT& dt);
 };
 
 #endif

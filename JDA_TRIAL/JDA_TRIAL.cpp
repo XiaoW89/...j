@@ -26,7 +26,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		pm._L = 51;
 		pm._T = 5;
-		pm._N = 2000;
+		pm._N = 1000;
 		pm._K = pm._N / pm._T;
 
 		pm._n_p = md->_labels["POSITIVE"].size();
@@ -41,7 +41,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		pm._radius.push_back(0.2);
 		pm._radius.push_back(0.1);
 		pm._radius.push_back(0.08);
-
 
 	}
 

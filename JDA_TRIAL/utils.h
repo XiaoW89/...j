@@ -41,6 +41,8 @@ struct PARAMETERS
 	uint16 _n_deepth;
 	uint16 _n_splitFeatures;
 	std::vector<float> _radius;
+
+
 };
 
 struct BBOX
