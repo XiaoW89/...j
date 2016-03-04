@@ -76,6 +76,7 @@ struct DT
 	cv::Mat_<double>_rotation; //形状对齐的旋转矩阵，注意如果负样本则为空
 	double _scale; //形状对齐的尺度系数，注意如果负样本则为空
 	cv::Mat_<double>_pixDiffFeat; //像素差分特征；
+	cv::Mat_<double>_regressionTarget;
 };
 
 class FeatureLocations
@@ -137,6 +138,8 @@ T RandNumberUniform(const T low, const T high)
 	return rdn;
 }
 
+inline void AsignWeight(DT* dt){ dt->_weight = exp(-1 * dt->_lable* dt->_score); };
+
 void drawFeatureP(cv::Mat& image, const cv::Rect& faceRegion, const cv::Mat_<float>&gtp, cv::Scalar sc);
 void maxminVec(const cv::Mat_<float>& shape, BBOX& wh);
 int randScalar(const int max, int* input);
@@ -145,8 +148,9 @@ cv::Mat_<float> ReProjection(const cv::Mat_<float>& meanShape, const BBOX& bbox,
 void DrawPredictImage(cv::Mat& image, cv::Mat_<float>& shape);
 cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::Mat_<float>&gtp_x, const cv::Mat_<float>&gtp_y, int * left_eye, int* right_eye, const int numRbbox, const int numpt);
 cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::Mat_<float>&gtp_x, const cv::Mat_<float>&gtp_y, int * left_eye, int* right_eye, const int numRbbox, const int numpt, const cv::Mat_<float>mask);
-
-
+void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<double>& shape_from,
+	cv::Mat_<double>& rotation, double& scale);
+DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm);
 
 #endif
 

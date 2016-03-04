@@ -376,3 +376,92 @@ cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::
 	return err;
 }
 
+// get the rotation and scale parameters by transferring shape_from to shape_to, shape_to = M*shape_from
+void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<double>& shape_from,
+	cv::Mat_<double>& rotation, double& scale)
+{
+	rotation = cv::Mat(2, 2, 0.0);
+	scale = 0;
+
+	// center the data
+	double center_x_1 = 0.0;
+	double center_y_1 = 0.0;
+	double center_x_2 = 0.0;
+	double center_y_2 = 0.0;
+	for (int i = 0; i < shape_to.rows; i++){
+		center_x_1 += shape_to(i, 0);
+		center_y_1 += shape_to(i, 1);
+		center_x_2 += shape_from(i, 0);
+		center_y_2 += shape_from(i, 1);
+	}
+	center_x_1 /= shape_to.rows;
+	center_y_1 /= shape_to.rows;
+	center_x_2 /= shape_from.rows;
+	center_y_2 /= shape_from.rows;
+
+	cv::Mat_<double> temp1 = shape_to.clone();
+	cv::Mat_<double> temp2 = shape_from.clone();
+	for (int i = 0; i < shape_to.rows; i++){
+		temp1(i, 0) -= center_x_1;
+		temp1(i, 1) -= center_y_1;
+		temp2(i, 0) -= center_x_2;
+		temp2(i, 1) -= center_y_2;
+	}
+
+
+	cv::Mat_<double> covariance1, covariance2;
+	cv::Mat_<double> mean1, mean2;
+	// calculate covariance matrix
+	cv::calcCovarMatrix(temp1, covariance1, mean1, cv::COVAR_COLS, CV_64F); //CV_COVAR_COLS
+	cv::calcCovarMatrix(temp2, covariance2, mean2, cv::COVAR_COLS, CV_64F);
+
+	double s1 = sqrt(norm(covariance1));
+	double s2 = sqrt(norm(covariance2));
+	scale = s1 / s2;
+	temp1 = 1.0 / s1 * temp1;
+	temp2 = 1.0 / s2 * temp2;
+
+	double num = 0.0;
+	double den = 0.0;
+	for (int i = 0; i < shape_to.rows; i++){
+		num = num + temp1(i, 1) * temp2(i, 0) - temp1(i, 0) * temp2(i, 1);
+		den = den + temp1(i, 0) * temp2(i, 0) + temp1(i, 1) * temp2(i, 1);
+	}
+
+	double norm = sqrt(num*num + den*den);
+	double sin_theta = num / norm;
+	double cos_theta = den / norm;
+	rotation(0, 0) = cos_theta;
+	rotation(0, 1) = -sin_theta;
+	rotation(1, 0) = sin_theta;
+	rotation(1, 1) = cos_theta;
+}
+
+DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm)
+{
+
+	int rdn = RandNumberUniform<int>(0,  pm._n_n- 1);//Selecting a sample from negative set randomly
+
+	/* code */
+	DT* result = new DT;
+	float w = md->_imagsProperty["NEGATIVE"][rdn].width;
+	float h = md->_imagsProperty["NEGATIVE"][rdn].height;
+
+	result->_bbox.x = RandNumberUniform<float>(0.2, 0.8)*w; //This scope can be varied  
+	result->_bbox.y = RandNumberUniform<float>(0.2, 0.8)*h;
+	result->_bbox.width = RandNumberUniform<float>(0.2, 0.5)*w;
+	result->_bbox.height = RandNumberUniform<float>(0.2, 0.5)*h;
+	result->_bbox.ctx = result->_bbox.x + result->_bbox.width / 2;
+	result->_bbox.cty = result->_bbox.y + result->_bbox.height / 2;
+
+	result->_className = "NEGATIVE";
+	result->_index = rdn;
+	result->_weight = 1.0;
+	result->_score = 0.0;
+	result->_lable = -1;
+	result->_path = md->_imagsPath["NEGATIVE"][rdn];
+	result->_img = cv::imread(result->_path, 0);
+	result->_prdshape = ProjectShape(md->_Meanshape.col(0), md->_Meanshape.col(1), result->_bbox);
+
+	return result;
+}

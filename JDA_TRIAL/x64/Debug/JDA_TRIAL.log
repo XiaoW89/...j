@@ -1,8 +1,6 @@
-﻿Build started 2016/2/24 11:18:15.
-     1>Project "F:\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj" on node 2 (Rebuild target(s)).
+﻿Build started 2016/3/3 15:19:37.
+     1>Project "F:\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"x64\Debug\JDA_TRIAL.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt stdafx.cpp
-         stdafx.cpp
          D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"x64\Debug\JDA_TRIAL.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt JDA.cpp JDA_TRIAL.cpp randomforest.cpp
          randomforest.cpp
      1>randomforest.cpp : warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
@@ -14,7 +12,7 @@
                  Add directive to 'stdafx.h' or rebuild precompiled header
      1>randomforest.cpp(4): warning C4627: '#include <stack>': skipped when looking for precompiled header use
                  Add directive to 'stdafx.h' or rebuild precompiled header
-     1>randomforest.cpp(452): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+     1>randomforest.cpp(653): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
          JDA_TRIAL.cpp
      1>JDA_TRIAL.cpp(32): warning C4267: '=' : conversion from 'size_t' to 'uint32', possible loss of data
      1>JDA_TRIAL.cpp(39): warning C4305: 'argument' : truncation from 'double' to 'float'
@@ -23,30 +21,21 @@
      1>JDA_TRIAL.cpp(42): warning C4305: 'argument' : truncation from 'double' to 'float'
      1>JDA_TRIAL.cpp(43): warning C4305: 'argument' : truncation from 'double' to 'float'
          JDA.cpp
-     1>f:\jda_ex\jda_trial\randomforest.h(15): error C2146: syntax error : missing ';' before identifier 'feature_locations_'
-     1>f:\jda_ex\jda_trial\randomforest.h(15): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
-     1>f:\jda_ex\jda_trial\randomforest.h(32): error C2065: 'FeatureLocations' : undeclared identifier
-     1>f:\jda_ex\jda_trial\randomforest.h(32): error C2923: 'std::vector' : 'FeatureLocations' is not a valid template type argument for parameter '_Ty'
-     1>f:\jda_ex\jda_trial\randomforest.h(39): error C2065: 'BoundingBox' : undeclared identifier
-     1>f:\jda_ex\jda_trial\randomforest.h(39): error C2923: 'std::vector' : 'BoundingBox' is not a valid template type argument for parameter '_Ty'
-     1>f:\jda_ex\jda_trial\randomforest.h(47): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
-     1>f:\jda_ex\jda_trial\randomforest.h(47): error C2143: syntax error : missing ',' before '&'
-     1>f:\jda_ex\jda_trial\randomforest.h(50): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
-     1>f:\jda_ex\jda_trial\randomforest.h(50): error C2143: syntax error : missing ',' before '&'
-     1>f:\jda_ex\jda_trial\randomforest.h(53): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
-     1>f:\jda_ex\jda_trial\randomforest.h(53): error C2143: syntax error : missing ',' before '&'
-     1>f:\jda_ex\jda_trial\randomforest.h(55): error C2061: syntax error : identifier 'Parameters'
-     1>f:\jda_ex\jda_trial\randomforest.h(55): error C2535: 'RandomForest::RandomForest(void)' : member function already defined or declared
-                 f:\jda_ex\jda_trial\randomforest.h(54) : see declaration of 'RandomForest::RandomForest'
+     1>f:\jda_ex\jda_trial\randomforest.h(61): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+     1>f:\jda_ex\jda_trial\randomforest.h(61): error C2143: syntax error : missing ',' before '&'
+     1>f:\jda_ex\jda_trial\randomforest.h(66): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+     1>f:\jda_ex\jda_trial\randomforest.h(66): error C2143: syntax error : missing ',' before '&'
+     1>f:\jda_ex\jda_trial\randomforest.h(70): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+     1>f:\jda_ex\jda_trial\randomforest.h(70): error C2143: syntax error : missing ',' before '&'
      1>JDA.cpp(18): warning C4018: '<' : signed/unsigned mismatch
-     1>JDA.cpp(32): warning C4018: '<' : signed/unsigned mismatch
+     1>JDA.cpp(36): warning C4018: '<' : signed/unsigned mismatch
      1>JDA.cpp(85): warning C4305: 'argument' : truncation from 'double' to 'const float'
      1>JDA.cpp(86): warning C4305: 'argument' : truncation from 'double' to 'const float'
      1>JDA.cpp(87): warning C4305: 'argument' : truncation from 'double' to 'const float'
      1>JDA.cpp(88): warning C4305: 'argument' : truncation from 'double' to 'const float'
          Generating Code...
-     1>Done Building Project "F:\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj" (Rebuild target(s)) -- FAILED.
+     1>Done Building Project "F:\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj" (Build target(s)) -- FAILED.
 
 Build FAILED.
 
-Time Elapsed 00:00:01.49
+Time Elapsed 00:00:02.30

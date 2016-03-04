@@ -41,20 +41,19 @@ public:
 	double _local_radius;
 	int _all_leaf_nodes;
 	//cv::Mat_<double> mean_shape_;
-	std::vector<Node*> _trees;
 	std::vector<FeatureLocations> _local_position; // size = param_.local_features_num
-	std::vector<cv::Mat_<double> >* _regression_targets;
 
-	bool TrainForest(MYDATA* const md, std::deque<DT>& p_dt, std::deque<DT>& n_dt,
-		const std::vector<cv::Mat_<double> >& rotations_negsample, const std::vector<cv::Mat_<double> >& rotations_possample,
-		const std::vector<double>& scales_negsample, const std::vector<double>& scales_possample);
+	bool TrainForest(MYDATA* const md, const PARAMETERS& pm, std::deque<DT*>& p_dt, std::deque<DT*>& n_dt,
+		std::vector<std::vector<Node*>>&cascade);
 
-	Node* BuildCRTree(std::set<int>& selected_ft_indexes,int current_depth, std::deque<DT>& p_dt, 
-		std::deque<DT>& n_dt);
+	Node* BuildCRTree(std::set<int>& selected_ft_indexes,int current_depth, std::deque<DT*>& p_dt, 
+		std::deque<DT*>& n_dt);
 
-	int FindSplitFeature(Node* node, std::set<int>& selected_ft_indexes, std::deque<DT>& left_pos,
-		std::deque<DT>& left_neg, std::deque<DT>& right_pos, std::deque<DT>& right_neg,
-		CorR corr, const std::deque<DT>& p_dt, const std::deque<DT>& n_dt);
+	int FindSplitFeature(Node* node, std::set<int>& selected_ft_indexes, std::deque<DT*>& left_pos,
+		std::deque<DT*>& left_neg, std::deque<DT*>& right_pos, std::deque<DT*>& right_neg,
+		CorR corr, const std::deque<DT*>& p_dt, const std::deque<DT*>& n_dt);
+
+	void LearnShapeIncrement(const std::vector<std::vector<Node*>>&cascade, std::deque<DT*>& p_dt);
 
 	cv::Mat_<double> GetBinaryFeatures(const cv::Mat_<double>& image,
 		const BoundingBox& bbox, const cv::Mat_<double>& current_shape, const cv::Mat_<double>& rotation, const double& scale);
@@ -70,7 +69,7 @@ public:
 
 	RandomForest();
 
-	RandomForest(PARAMETERS& param, int landmark_index, int stage, std::vector<cv::Mat_<double> >& regression_targets);
+	RandomForest(PARAMETERS& param,  int stage);
 
 	void WriteTree(Node* p, std::ofstream& fout);
 
@@ -80,14 +79,19 @@ public:
 
 	void LoadRandomForest(std::ifstream& fin);
 
-	void GeneratePixelDiff(MYDATA* const md, std::deque<DT>& dt);
+	void GeneratePixelDiff(MYDATA* const md, std::deque<DT*>& dt);
 
 private:
 	CorR Split_Type(const int stage);
 
-	void AssignCScore_Node(Node* nd, std::deque<DT>& p_dt, std::deque<DT>& n_dt);
+	void AssignCScore_Node(Node* nd, std::deque<DT*>& p_dt, std::deque<DT*>& n_dt);
 
-	void getCscore_singleTress(Node* nd, DT& dt);
+	void getCscore_singleTress(const Node* nd, DT* dt);
+
+	void getCscore_wholeTress(const std::vector<std::vector<Node*>>&cascade, DT* dt);
+
+	
+
 };
 
 #endif
