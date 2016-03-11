@@ -21,13 +21,13 @@ public:
 	CorR _cor;
 	double _cscore;
 	FeatureLocations _feature_locations;
+	int ft_index;
 	Node(Node* left, Node* right, double thres, bool leaf);
 	Node(Node* left, Node* right, double thres);
 	Node();
 
-	float _Precision;
-	float _Recall;
-	float _Fscore;
+	float _TPR;
+	float _FPR;
 	float _theta; //used for removing samples whos _cscore<_theta, and this value is acquired according to orecision-recall rate;
 };
 
@@ -40,11 +40,12 @@ public:
 	int _trees_num_per_forest;
 	double _local_radius;
 	int _all_leaf_nodes;
+	std::vector<std::vector<Node*>> trees_;
 	//cv::Mat_<double> mean_shape_;
-	std::vector<FeatureLocations> _local_position; // size = param_.local_features_num
+	std::vector<std::vector<FeatureLocations>> _local_position; // size = param_.local_features_num
 
 	bool TrainForest(MYDATA* const md, const PARAMETERS& pm, std::deque<DT*>& p_dt, std::deque<DT*>& n_dt,
-		std::vector<std::vector<Node*>>&cascade);
+		std::vector<RandomForest>&cascade);
 
 	Node* BuildCRTree(std::set<int>& selected_ft_indexes,int current_depth, std::deque<DT*>& p_dt, 
 		std::deque<DT*>& n_dt);
@@ -55,31 +56,12 @@ public:
 
 	void LearnShapeIncrement(const std::vector<std::vector<Node*>>&cascade, std::deque<DT*>& p_dt);
 
-	cv::Mat_<double> GetBinaryFeatures(const cv::Mat_<double>& image,
-		const BoundingBox& bbox, const cv::Mat_<double>& current_shape, const cv::Mat_<double>& rotation, const double& scale);
-
-	int MarkLeafIdentity(Node* node, int count);
-
-	int GetNodeOutput(Node* node, const cv::Mat_<double>& image,
-		const BoundingBox& bbox, const cv::Mat_<double>& current_shape, const cv::Mat_<double>& rotation, const double& scale);
-
-	//predict()
-	int GetBinaryFeatureIndex(int tree_index, const cv::Mat_<double>& image,
-	const BoundingBox& bbox, const cv::Mat_<double>& current_shape, const cv::Mat_<double>& rotation, const double& scale);
-
 	RandomForest();
 
 	RandomForest(PARAMETERS& param,  int stage);
 
-	void WriteTree(Node* p, std::ofstream& fout);
 
-	Node* ReadTree(std::ifstream& fin);
-
-	void SaveRandomForest(std::ofstream& fout);
-
-	void LoadRandomForest(std::ifstream& fin);
-
-	void GeneratePixelDiff(MYDATA* const md, std::deque<DT*>& dt);
+	void GeneratePixelDiff(MYDATA* const md, std::deque<DT*>& dt, const std::vector<FeatureLocations>& fl);
 
 private:
 	CorR Split_Type(const int stage);
@@ -88,10 +70,11 @@ private:
 
 	void getCscore_singleTress(const Node* nd, DT* dt);
 
-	void getCscore_wholeTress(const std::vector<std::vector<Node*>>&cascade, DT* dt);
+	void getCscore_wholeTress(const std::vector<RandomForest>&cascade, MYDATA* md, DT* dt);
+
+	int GetLeafIndex_singleTress(Node* nd, DT* dt);
 
 	
-
 };
 
 #endif

@@ -1,41 +1,93 @@
-﻿Build started 2016/3/3 15:19:37.
+﻿Build started 2016/3/10 17:29:11.
      1>Project "F:\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"x64\Debug\JDA_TRIAL.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt JDA.cpp JDA_TRIAL.cpp randomforest.cpp
+         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"x64\Debug\JDA_TRIAL.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TC /errorReport:prompt "D:\liblinear-master\liblinear-master\blas\daxpy.c" "D:\liblinear-master\liblinear-master\blas\ddot.c" "D:\liblinear-master\liblinear-master\blas\dnrm2.c" "D:\liblinear-master\liblinear-master\blas\dscal.c"
+         dscal.c
+         dnrm2.c
+         ddot.c
+         daxpy.c
+         Generating Code...
+         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt "D:\liblinear-master\liblinear-master\linear.cpp" "D:\liblinear-master\liblinear-master\tron.cpp" JDA.cpp randomforest.cpp utils.cpp
+         utils.cpp
+     1>utils.cpp(16): warning C4244: '=' : conversion from 'intptr_t' to 'int', possible loss of data
+     1>utils.cpp(39): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+     1>utils.cpp(47): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>utils.cpp(220): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>utils.cpp(221): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>utils.cpp(223): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>utils.cpp(265): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>utils.cpp(266): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>utils.cpp(287): warning C4267: 'argument' : conversion from 'size_t' to 'int', possible loss of data
+     1>utils.cpp(334): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>utils.cpp(392): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>utils.cpp(404): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+     1>utils.cpp(464): warning C4267: 'argument' : conversion from 'size_t' to 'const int', possible loss of data
+     1>utils.cpp(471): warning C4305: 'argument' : truncation from 'double' to 'const float'
+     1>utils.cpp(472): warning C4305: 'argument' : truncation from 'double' to 'const float'
+     1>utils.cpp(473): warning C4305: 'argument' : truncation from 'double' to 'const float'
+     1>utils.cpp(474): warning C4305: 'argument' : truncation from 'double' to 'const float'
          randomforest.cpp
      1>randomforest.cpp : warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
-     1>randomforest.cpp(1): warning C4627: '#include "randomforest.h"': skipped when looking for precompiled header use
-                 Add directive to 'stdafx.h' or rebuild precompiled header
-     1>randomforest.cpp(2): warning C4627: '#include <time.h>': skipped when looking for precompiled header use
-                 Add directive to 'stdafx.h' or rebuild precompiled header
-     1>randomforest.cpp(3): warning C4627: '#include <algorithm>': skipped when looking for precompiled header use
-                 Add directive to 'stdafx.h' or rebuild precompiled header
-     1>randomforest.cpp(4): warning C4627: '#include <stack>': skipped when looking for precompiled header use
-                 Add directive to 'stdafx.h' or rebuild precompiled header
-     1>randomforest.cpp(653): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+     1>randomforest.cpp(37): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+     1>randomforest.cpp(38): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+     1>randomforest.cpp(75): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>randomforest.cpp(80): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>randomforest.cpp(118): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+     1>randomforest.cpp(206): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+     1>randomforest.cpp(207): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+     1>randomforest.cpp(217): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+     1>randomforest.cpp(262): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
+     1>randomforest.cpp(263): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
+     1>randomforest.cpp(281): warning C4244: 'argument' : conversion from 'float' to 'unsigned __int64', possible loss of data
+     1>randomforest.cpp(283): warning C4244: 'argument' : conversion from 'double' to 'const int', possible loss of data
+     1>randomforest.cpp(286): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+     1>randomforest.cpp(342): warning C4244: 'argument' : conversion from 'double' to 'const int', possible loss of data
+     1>randomforest.cpp(345): warning C4244: 'argument' : conversion from 'double' to 'const int', possible loss of data
+     1>randomforest.cpp(349): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+     1>randomforest.cpp(363): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
+     1>randomforest.cpp(364): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
+     1>randomforest.cpp(365): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
+     1>randomforest.cpp(366): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
+     1>randomforest.cpp(441): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+     1>randomforest.cpp(442): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+     1>randomforest.cpp(451): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+     1>randomforest.cpp(452): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+     1>randomforest.cpp(462): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>randomforest.cpp(486): warning C4244: '+=' : conversion from 'const double' to 'float', possible loss of data
+         JDA.cpp
+     1>JDA.cpp(18): warning C4018: '<' : signed/unsigned mismatch
+     1>JDA.cpp(37): warning C4018: '<' : signed/unsigned mismatch
+     1>JDA.cpp(83): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+     1>JDA.cpp(121): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+         tron.cpp
+         linear.cpp
+         Generating Code...
+     1>f:\jda_ex\jda_trial\randomforest.cpp(527): warning C4715: 'RandomForest::GetLeafIndex_singleTress' : not all control paths return a value
+         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"x64\Debug\JDA_TRIAL.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt JDA_TRIAL.cpp
          JDA_TRIAL.cpp
-     1>JDA_TRIAL.cpp(32): warning C4267: '=' : conversion from 'size_t' to 'uint32', possible loss of data
-     1>JDA_TRIAL.cpp(39): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>JDA_TRIAL.cpp(33): warning C4267: '=' : conversion from 'size_t' to 'uint32', possible loss of data
      1>JDA_TRIAL.cpp(40): warning C4305: 'argument' : truncation from 'double' to 'float'
      1>JDA_TRIAL.cpp(41): warning C4305: 'argument' : truncation from 'double' to 'float'
      1>JDA_TRIAL.cpp(42): warning C4305: 'argument' : truncation from 'double' to 'float'
      1>JDA_TRIAL.cpp(43): warning C4305: 'argument' : truncation from 'double' to 'float'
-         JDA.cpp
-     1>f:\jda_ex\jda_trial\randomforest.h(61): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
-     1>f:\jda_ex\jda_trial\randomforest.h(61): error C2143: syntax error : missing ',' before '&'
-     1>f:\jda_ex\jda_trial\randomforest.h(66): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
-     1>f:\jda_ex\jda_trial\randomforest.h(66): error C2143: syntax error : missing ',' before '&'
-     1>f:\jda_ex\jda_trial\randomforest.h(70): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
-     1>f:\jda_ex\jda_trial\randomforest.h(70): error C2143: syntax error : missing ',' before '&'
-     1>JDA.cpp(18): warning C4018: '<' : signed/unsigned mismatch
-     1>JDA.cpp(36): warning C4018: '<' : signed/unsigned mismatch
-     1>JDA.cpp(85): warning C4305: 'argument' : truncation from 'double' to 'const float'
-     1>JDA.cpp(86): warning C4305: 'argument' : truncation from 'double' to 'const float'
-     1>JDA.cpp(87): warning C4305: 'argument' : truncation from 'double' to 'const float'
-     1>JDA.cpp(88): warning C4305: 'argument' : truncation from 'double' to 'const float'
-         Generating Code...
-     1>Done Building Project "F:\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj" (Build target(s)) -- FAILED.
+     1>JDA_TRIAL.cpp(44): warning C4305: 'argument' : truncation from 'double' to 'float'
+       Link:
+         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"F:\JDA_EX\x64\Debug\JDA_TRIAL.exe" /INCREMENTAL /NOLOGO opencv_ml2411d.lib opencv_calib3d2411d.lib opencv_contrib2411d.lib opencv_core2411d.lib opencv_features2d2411d.lib opencv_flann2411d.lib opencv_gpu2411d.lib opencv_highgui2411d.lib opencv_imgproc2411d.lib opencv_legacy2411d.lib opencv_objdetect2411d.lib opencv_ts2411d.lib opencv_video2411d.lib opencv_nonfree2411d.lib opencv_ocl2411d.lib opencv_photo2411d.lib opencv_stitching2411d.lib opencv_superres2411d.lib opencv_videostab2411d.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"F:\JDA_EX\x64\Debug\JDA_TRIAL.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"F:\JDA_EX\x64\Debug\JDA_TRIAL.lib" /MACHINE:X64 x64\Debug\daxpy.obj
+         x64\Debug\ddot.obj
+         x64\Debug\dnrm2.obj
+         x64\Debug\dscal.obj
+         x64\Debug\linear.obj
+         x64\Debug\tron.obj
+         x64\Debug\JDA.obj
+         x64\Debug\JDA_TRIAL.obj
+         x64\Debug\randomforest.obj
+         x64\Debug\stdafx.obj
+         x64\Debug\utils.obj
+         JDA_TRIAL.vcxproj -> F:\JDA_EX\x64\Debug\JDA_TRIAL.exe
+     1>Done Building Project "F:\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj" (Build target(s)).
 
-Build FAILED.
+Build succeeded.
 
-Time Elapsed 00:00:02.30
+Time Elapsed 00:00:04.45

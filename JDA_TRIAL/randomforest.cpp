@@ -30,15 +30,20 @@ Node::Node(Node* left, Node* right, double thres, bool leaf)
 }
 
 bool RandomForest::TrainForest(MYDATA* const md,  const PARAMETERS& pm, std::deque<DT*>& p_dt,  
-	std::deque<DT*>& n_dt, std::vector<std::vector<Node*>>&cascade)
+	std::deque<DT*>& n_dt, std::vector<RandomForest>&cascade)
 {
+	cv::waitKey(1000);
+
 	int n_sample_neg = n_dt.size(); 
 	int n_sample_pos = p_dt.size();
 
 	// train Random Forest
 	// construct each tree in the forest
-	cascade[_stage].clear();
 	_all_leaf_nodes = 0;
+	_local_position.clear();
+
+	this->trees_.resize(pm._L);
+
 	for (int i = 0; i < pm._K; i++)
 	{
 		//********STEP 1 : Computing samples' weight(Not for the first stage) ********
@@ -52,51 +57,37 @@ bool RandomForest::TrainForest(MYDATA* const md,  const PARAMETERS& pm, std::deq
 
 		//********STEP 2 : Select a point for regression********
 		_landmark_index = i / _trees_num_per_forest; //determine which landmark need to be trained 
-		std::cout << "Training weak classifer: " << i << "---pt: " << _landmark_index << "'th----- stage: " << _stage << std::endl;
 
-		
 		//********STEP 3 : Extract features and regression target********
-		_local_position.clear();
-		_local_position.resize(_local_features_num);
-		for (int j = 0; j < _local_features_num; j++)
+
+		if (0 == (i%_trees_num_per_forest)) //同一个特征点对应的所有树都共享一份坐标
 		{
-			double x, y;
-			do{
-				x = RandNumberUniform<double>(-_local_radius, _local_radius);
-				y = RandNumberUniform<double>(-_local_radius, _local_radius);
-			} while (x*x + y*y > _local_radius*_local_radius);
-			cv::Point2f a(x, y);
+			
+			std::cout << "Training weak classifer: " << i << "---pt: " << _landmark_index << "'th----- stage: " << _stage << std::endl;
+			std::vector<FeatureLocations>tp;
+			for (int j = 0; j < _local_features_num; j++)
+			{
+				double x, y;
+				do{
+					x = RandNumberUniform<double>(-_local_radius, _local_radius);
+					y = RandNumberUniform<double>(-_local_radius, _local_radius);
+				} while (x*x + y*y > _local_radius*_local_radius);
+				cv::Point2f a(x, y);
+				do{
+					x = RandNumberUniform<double>(-_local_radius, _local_radius);
+					y = RandNumberUniform<double>(-_local_radius, _local_radius);
+				} while (x*x + y*y > _local_radius*_local_radius);
+				cv::Point2f b(x, y);
 
-			do{
-				x = RandNumberUniform<double>(-_local_radius, _local_radius);
-				y = RandNumberUniform<double>(-_local_radius, _local_radius);
-			} while (x*x + y*y > _local_radius*_local_radius);
-			cv::Point2f b(x, y);
-
-			_local_position[j] = FeatureLocations(a, b);
-		}
-
-			//Compute similarity transform matrix , scale factor and regression target
-		std::cout << "calculate regression targets" << std::endl;
-#pragma omp parallel for
-		for (int j = 0; j < p_dt.size(); j++)
-		{
-			p_dt[j]->_regressionTarget = ProjectShape(p_dt[j]->_gtshape.col(0), p_dt[j]->_gtshape.col(1), p_dt[j]->_bbox)
-				- ProjectShape(p_dt[j]->_prdshape.col(0), p_dt[j]->_prdshape.col(1), p_dt[j]->_bbox);
-			cv::Mat_<double> rotation;
-			double scale;
-			getSimilarityTransform(md->_Meanshape, ProjectShape(p_dt[j]->_prdshape.col(0), p_dt[j]->_prdshape.col(1), p_dt[j]->_bbox), rotation, scale);//求正向变换矩阵
-			cv::transpose(rotation, rotation);
-			p_dt[j]->_regressionTarget = scale * p_dt[j]->_regressionTarget * rotation;
-			getSimilarityTransform(ProjectShape(p_dt[j]->_prdshape.col(0), p_dt[j]->_prdshape.col(1), p_dt[j]->_bbox), md->_Meanshape, rotation, scale);//求逆向变换矩阵
-			p_dt[j]->_rotation = rotation; //对齐到meanshape的旋转矩阵
-			p_dt[j]->_scale = scale;//对其到meanshape的缩放系数
+				tp.push_back(FeatureLocations(a, b));
+			}
+			_local_position.push_back(tp);
 		}
 
 			//Extract pixel difference feature
 		std::cout << "get pixel differences" << std::endl;
-		GeneratePixelDiff(md, p_dt);
-		GeneratePixelDiff(md, n_dt);
+		GeneratePixelDiff(md, p_dt, _local_position[_landmark_index]);
+		GeneratePixelDiff(md, n_dt, _local_position[_landmark_index]);
 
 
 		//********STEP 4 : Learn the structure of crtree********
@@ -117,71 +108,95 @@ bool RandomForest::TrainForest(MYDATA* const md,  const PARAMETERS& pm, std::deq
 			score_set.insert(n_dt[j]->_score);
 		}
 
-
 		//********STEP 5 : Determing the bias theta according to a preset precision-recall condition********
-		root->_Precision = root->_Recall = 0.0;
-		root->_Fscore = -DBL_MAX;
+		root->_TPR = root->_FPR = 0.0;
 		root->_theta = 0;
 
-		for (std::set<float>::const_iterator it; it != score_set.cend(); it++)
+		for (std::set<float>::const_iterator it = score_set.cbegin(); it != score_set.cend(); it++)
 		{
 			float threshold = *it;
 			float fp = 0.0; int tp = 0.0;
-			for (int t = 0; t < n_sample_pos; t++)
+			for (int t = 0; t < p_dt.size(); t++)
 			{
 				if (p_dt[t]->_score >= threshold)
 					tp += 1;
 			}
-			for (int t = 0; t < n_sample_neg; t++)
+			for (int t = 0; t < n_dt.size(); t++)
 			{
 				if (n_dt[t]->_score >= threshold)
 					fp += 1;
 			}
-			float Precision = (tp) / (float)(tp + fp);
-			float Recall = (tp ) / (float)(n_sample_pos);
-			float fscore = 2 * Precision*Recall / (Precision + Recall);
-			if (fscore > root->_Fscore)
+			float TPR = (tp) / (float)(p_dt.size());
+			float FPR = (fp ) / (float)(n_dt.size());
+
+			std::cout << "[ " << TPR << " , " << FPR << " ]"<<std::endl;
+			if (TPR > 0.9 && FPR<0.6)
 			{
-				root->_Precision = Precision;
-				root->_Recall = Recall;
-				root->_Fscore = fscore;
 				root->_theta = threshold;
+				root->_TPR = TPR;
+				root->_FPR = FPR;
 			}
 		}
-		cascade[_stage].push_back(root);
 
+		std::cout << i << "'th weak classifier with --theta : " << root->_theta << std::endl;
+		std::cout << "_TPR : " << root->_TPR << std::endl;
+		std::cout << "_FPR : " << root->_FPR << std::endl;
+
+
+		this->trees_[_landmark_index].push_back(root);
 
 		//********STEP 6 : Removing samples whos classification score less than theta********
-		for (std::deque<DT*>::iterator it = p_dt.begin(); it != p_dt.end(); it++)
+		std::deque<DT*>::iterator it = p_dt.begin();
+		while (it != p_dt.end())
 		{
 			if ((*it)->_score < root->_theta)
-				p_dt.erase(it);
+				it = p_dt.erase(it);
+			else
+				it++;
 		}
-		for (std::deque<DT*>::iterator it = n_dt.begin(); it != n_dt.end(); it++)
+		it = n_dt.begin();
+		while (it != n_dt.end())
 		{
 			if ((*it)->_score < root->_theta)
-				n_dt.erase(it);
+				it = n_dt.erase(it);
+			else
+				it++;
 		}
+		//for (std::deque<DT*>::iterator it = p_dt.begin(); it != p_dt.end(); it++)
+		//{
+		//	if ((*it)->_score < root->_theta)
+		//		p_dt.erase(it);
+		//}
+		//for (std::deque<DT*>::iterator it = n_dt.begin(); it != n_dt.end(); it++)
+		//{
+		//	if ((*it)->_score < root->_theta)
+		//		n_dt.erase(it);
+		//}
 
-
+		std::cout << "had removed : " << n_sample_pos - p_dt.size() << "pos samples, and " << n_sample_neg - n_dt.size() << "neg samples" << std::endl;
 		//********STEP 7 : Peform negative sample mining if negative samples are insufficient
+
+		int sampflag = 1;
 		while ((n_sample_neg - n_dt.size())>0)
 		{
 			//Firstly, we generate a intial negative sample
 			DT* temp = GeNegSamp(md, pm);
 
 			//Then, let this sample traverse to current tree
-			getCscore_wholeTress(cascade, temp);
+			getCscore_wholeTress(cascade, md, temp);
 
 			//Lastly, put it into the negative sample set if it survived in last step
 			if (temp->_score >= root->_cscore)
+			{
 				n_dt.push_back(temp);
+				std::cout << "Mining the " << sampflag << "'th negtive sample successfully!" << std::endl;
+				sampflag += 1;
+			}
+				
 		}
 	}
 	return true;
 }
-
-
 
 
 Node* RandomForest::BuildCRTree(std::set<int>& selected_ft_indexes, int current_depth, std::deque<DT*>& p_dt,
@@ -190,7 +205,7 @@ Node* RandomForest::BuildCRTree(std::set<int>& selected_ft_indexes, int current_
 	int n_sample_neg = n_dt.size();
 	int n_sample_pos = p_dt.size();
 
-	if ((n_sample_pos > 0) & (n_sample_neg > 0))// the node may not split under some cases
+	if ((p_dt.size() > 0) & (n_dt.size() > 0))// the node may not split under some cases
 	{ 
 		//Decide either CLASSIFICATION or REGRESSION node
 		CorR type_split = Split_Type(_stage);
@@ -198,7 +213,7 @@ Node* RandomForest::BuildCRTree(std::set<int>& selected_ft_indexes, int current_
 		//Construct tree iteratively
 		Node* node = new Node();
 		node->_depth = current_depth;
-		node->_samples = n_sample_pos+n_sample_neg;
+		node->_samples = n_dt.size() + p_dt.size();
 	
 		std::deque<DT*> left_image_pos, right_image_pos,
 			left_image_neg, right_image_neg;
@@ -238,25 +253,21 @@ int RandomForest::FindSplitFeature(Node* node, std::set<int>& selected_ft_indexe
 	std::deque<DT*>& left_neg, std::deque<DT*>& right_pos, std::deque<DT*>& right_neg,
 	CorR corr, const std::deque<DT*>& p_dt, const std::deque<DT*>& n_dt)
 {
-	std::vector<int> val;
-	//cv::Mat_<int> sorted_fea;
 	int threshold; 
 	double var = -DBL_MAX;
 	double entrp = -DBL_MAX;
 	int feature_index = -1;
 
-	//int j = 0, tmp_index;
-
-	int n_p = p_dt.size();
-	int n_n = n_dt.size();
+	float n_p = p_dt.size();
+	float n_n = n_dt.size();
 
 	std::deque<DT*> tp_left_pos, tp_left_neg, tp_right_pos, tp_right_neg;
 	for (int j = 0; j < _local_features_num; j++)
 	{
 		if (selected_ft_indexes.find(j) == selected_ft_indexes.end()) //如果j不在容器里面就执行操作
 		{
-		
 			tp_left_pos.clear(); tp_left_neg.clear(); tp_right_neg.clear(); tp_right_pos.clear();
+
 			//I am training regression nodes with positive samples only
 			if (REGRESSION == corr) //For Regression Node
 			{
@@ -348,10 +359,10 @@ int RandomForest::FindSplitFeature(Node* node, std::set<int>& selected_ft_indexe
 					else{ tp_right_neg.push_back(n_dt[i]); }
 				}
 
-				int n_n_l = tp_left_neg.size();
-				int n_n_r = tp_right_neg.size();
-				int n_p_l = tp_left_pos.size();
-				int n_p_r = tp_right_pos.size();
+				float n_n_l = tp_left_neg.size();
+				float n_n_r = tp_right_neg.size();
+				float n_p_l = tp_left_pos.size();
+				float n_p_r = tp_right_pos.size();
 
 				double entrp_root = -(n_n / (n_n + n_p))*log((n_n / (n_n + n_p))) - (n_p / (n_n + n_p))*log((n_p / (n_n + n_p)));
 				double entrp_l = -(n_n_l / (n_n_l + n_p_l))*log((n_n_l / (n_n_l + n_p_l))) - (n_p_l / (n_n_l + n_p_l))*log((n_p_l / (n_n_l + n_p_l)));
@@ -385,7 +396,8 @@ int RandomForest::FindSplitFeature(Node* node, std::set<int>& selected_ft_indexe
 
 		node->_threshold = threshold;
 		node->_thre_changed = true;
-		node->_feature_locations = _local_position[feature_index];
+		node->ft_index = feature_index;
+		node->_feature_locations = _local_position[_landmark_index][feature_index];
 		selected_ft_indexes.insert(feature_index);
 		if (REGRESSION == corr) 
 			node->_cor = REGRESSION;
@@ -395,137 +407,6 @@ int RandomForest::FindSplitFeature(Node* node, std::set<int>& selected_ft_indexe
 		return 0;
 	}
 	return -1;
-}
-
-void RandomForest::LearnShapeIncrement(const std::vector<std::vector<Node*>>&cascade, std::deque<DT*>& p_dt)
-{
-	for ()
-	{
-
-	}
-}
-
-
-int RandomForest::MarkLeafIdentity(Node* node, int count){
-	std::stack<Node*> s;
-	Node* p_current = node; 
-	
-	if (node == NULL){
-		return count;
-	}
-	// the node in the tree is either leaf node or internal node that has both left and right children
-	while (1)//p_current || !s.empty())
-	{
-		
-		if (p_current->_is_leaf)
-		{
-			p_current->_leaf_identity = count;
-			count++;
-			if (s.empty())
-			{
-				return count;
-			}
-			p_current = s.top()->_right_child;
-			s.pop();
-		}
-		else
-		{
-			s.push(p_current);
-			p_current = p_current->_left_child;
-		}
-		
-		/*while (!p_current && !s.empty()){
-			p_current = s.top();
-			s.pop();
-			p_current = p_current->right_child_; 
-		}*/
-	}
-	
-}
-
-cv::Mat_<double> RandomForest::GetBinaryFeatures(const cv::Mat_<double>& image,
-	const BoundingBox& bbox, const cv::Mat_<double>& current_shape, const cv::Mat_<double>& rotation, const double& scale)
-{
-	cv::Mat_<double> res(1, _all_leaf_nodes, 0.0);
-	for (int i = 0; i < _trees_num_per_forest; i++){
-		Node* node = _trees[i];
-		while (!node->_is_leaf){
-			int direction = GetNodeOutput(node, image, bbox, current_shape, rotation, scale);
-			if (direction == -1){
-				node = node->_left_child;
-			}
-			else{
-				node = node->_right_child;
-			}
-		}
-		res(0, node->_leaf_identity) = 1.0;
-	}
-	return res;
-}
-
-int RandomForest::GetBinaryFeatureIndex(int tree_index, const cv::Mat_<double>& image,
-	const BoundingBox& bbox, const cv::Mat_<double>& current_shape, const cv::Mat_<double>& rotation, const double& scale){
-	Node* node = _trees[tree_index];
-	while (!node->_is_leaf){
-		FeatureLocations& pos = node->_feature_locations;
-		double delta_x = rotation(0, 0)*pos.start.x + rotation(0, 1)*pos.start.y;
-		double delta_y = rotation(1, 0)*pos.start.x + rotation(1, 1)*pos.start.y;
-		delta_x = scale*delta_x*bbox.width / 2.0;
-		delta_y = scale*delta_y*bbox.height / 2.0;
-		int real_x = delta_x + current_shape(_landmark_index, 0);
-		int real_y = delta_y + current_shape(_landmark_index, 1);
-		real_x = std::max(0, std::min(real_x, image.cols - 1)); // which cols
-		real_y = std::max(0, std::min(real_y, image.rows - 1)); // which rows
-		int tmp = (int)image(real_y, real_x); //real_y at first
-
-		delta_x = rotation(0, 0)*pos.end.x + rotation(0, 1)*pos.end.y;
-		delta_y = rotation(1, 0)*pos.end.x + rotation(1, 1)*pos.end.y;
-		delta_x = scale*delta_x*bbox.width / 2.0;
-		delta_y = scale*delta_y*bbox.height / 2.0;
-		real_x = delta_x + current_shape(_landmark_index, 0);
-		real_y = delta_y + current_shape(_landmark_index, 1);
-		real_x = std::max(0, std::min(real_x, image.cols - 1)); // which cols
-		real_y = std::max(0, std::min(real_y, image.rows - 1)); // which rows
-		if ((tmp - (int)image(real_y, real_x)) < node->_threshold){
-			node = node->_left_child;// go left
-		}
-		else{
-			node = node->_right_child;// go right
-		}
-	}
-	return node->_leaf_identity;
-}
-
-
-int RandomForest::GetNodeOutput(Node* node, const cv::Mat_<double>& image,
-	const BoundingBox& bbox, const cv::Mat_<double>& current_shape, const cv::Mat_<double>& rotation, const double& scale){
-	
-	FeatureLocations& pos = node->_feature_locations;
-	double delta_x = rotation(0, 0)*pos.start.x + rotation(0, 1)*pos.start.y;
-	double delta_y = rotation(1, 0)*pos.start.x + rotation(1, 1)*pos.start.y;
-	delta_x = scale*delta_x*bbox.width / 2.0;
-	delta_y = scale*delta_y*bbox.height / 2.0;
-	int real_x = delta_x + current_shape(_landmark_index, 0);
-	int real_y = delta_y + current_shape(_landmark_index, 1);
-	real_x = std::max(0, std::min(real_x, image.cols - 1)); // which cols
-	real_y = std::max(0, std::min(real_y, image.rows - 1)); // which rows
-	int tmp = (int)image(real_y, real_x); //real_y at first
-
-	delta_x = rotation(0, 0)*pos.end.x + rotation(0, 1)*pos.end.y;
-	delta_y = rotation(1, 0)*pos.end.x + rotation(1, 1)*pos.end.y;
-	delta_x = scale*delta_x*bbox.width / 2.0;
-	delta_y = scale*delta_y*bbox.height / 2.0;
-	real_x = delta_x + current_shape(_landmark_index, 0);
-	real_y = delta_y + current_shape(_landmark_index, 1);
-	real_x = std::max(0, std::min(real_x, image.cols - 1)); // which cols
-	real_y = std::max(0, std::min(real_y, image.rows - 1)); // which rows
-	if ((tmp - (int)image(real_y, real_x)) < node->_threshold){
-		return -1; // go left
-	}
-	else{
-		return 1; // go right
-	}
-
 }
 
 RandomForest::RandomForest(PARAMETERS& param, int stage)
@@ -543,91 +424,17 @@ RandomForest::RandomForest(){
 	
 }
 
-void RandomForest::SaveRandomForest(std::ofstream& fout){
-	fout << _stage << " "
-		<< _local_features_num << " "
-		<< _landmark_index << " "
-		<< _tree_depth << " "
-		<< _trees_num_per_forest << " "
-		<< _local_radius << " "
-		<< _all_leaf_nodes << " "
-		<< _trees.size() << std::endl;
-	for (int i = 0; i < _trees.size(); i++){
-		Node* root = _trees[i];
-		WriteTree(root, fout);
-	}
-}
-
-void RandomForest::WriteTree(Node* p, std::ofstream& fout){
-	if (!p){
-		fout << "#" << std::endl;
-	}
-	else{
-		fout <<"Y" << " "
-			<< p->_threshold << " " 
-			<< p->_is_leaf << " "
-			<< p->_leaf_identity << " "
-			<< p->_depth << " "
-			<< p->_feature_locations.start.x << " "
-			<< p->_feature_locations.start.y << " "
-			<< p->_feature_locations.end.x << " "
-			<< p->_feature_locations.end.y << std::endl;
-		WriteTree(p->_left_child, fout);
-		WriteTree(p->_right_child, fout);
-	}
-}
-
-Node* RandomForest::ReadTree(std::ifstream& fin){
-	std::string flag;
-	fin >> flag;
-	if (flag == "Y"){
-		Node* p = new Node();
-		fin >> p->_threshold
-			>> p->_is_leaf
-			>> p->_leaf_identity
-			>> p->_depth
-			>> p->_feature_locations.start.x
-			>> p->_feature_locations.start.y
-			>> p->_feature_locations.end.x
-			>> p->_feature_locations.end.y;
-		p->_left_child = ReadTree(fin);
-		p->_right_child = ReadTree(fin);
-		return p;
-	}
-	else{
-		return NULL;
-	}
-}
-
-void RandomForest::LoadRandomForest(std::ifstream& fin){
-	
-	int tree_size;
-	fin >> _stage
-		>> _local_features_num
-		>> _landmark_index
-		>> _tree_depth
-		>> _trees_num_per_forest
-		>> _local_radius
-		>> _all_leaf_nodes
-		>> tree_size;
-	std::string start_flag;
-	_trees.clear();
-	for (int i = 0; i < tree_size; i++){
-		Node* root = ReadTree(fin);
-		_trees.push_back(root);
-	}
-}
-
-void RandomForest::GeneratePixelDiff(MYDATA* const md, std::deque<DT*>& dt)
+void RandomForest::GeneratePixelDiff(MYDATA* const md, std::deque<DT*>& dt, const std::vector<FeatureLocations>& fl_set)
 {
 	for (int i = 0; i < dt.size(); i++)
 	{
 		//getSimilarityTransform(ProjectShape(augmented_current_shapes[i], augmented_bboxes[i]),mean_shape_, rotation, scale);
 
-		for (int j = 0; j < _local_features_num; j++){
-			FeatureLocations pos = _local_position[j];
-			double delta_x = dt[i]->_rotation(0, 0)*pos.start.x + dt[i]->_rotation(0, 1)*pos.start.y;//旋转后的x
-			double delta_y = dt[i]->_rotation(1, 0)*pos.start.x + dt[i]->_rotation(1, 1)*pos.start.y;//旋转后的y
+		for (int j = 0; j < _local_features_num; j++)
+		{
+			FeatureLocations fl = fl_set[j];
+			double delta_x = dt[i]->_rotation(0, 0)*fl.start.x + dt[i]->_rotation(0, 1)*fl.start.y;//旋转后的x
+			double delta_y = dt[i]->_rotation(1, 0)*fl.start.x + dt[i]->_rotation(1, 1)*fl.start.y;//旋转后的y
 			delta_x = dt[i]->_scale*delta_x*dt[i]->_bbox.width / 2.0;//在框内的坐标
 			delta_y = dt[i]->_scale*delta_y*dt[i]->_bbox.height / 2.0;
 			int real_x = delta_x + dt[i]->_prdshape(_landmark_index, 0);//在整个图片内的坐标
@@ -636,8 +443,8 @@ void RandomForest::GeneratePixelDiff(MYDATA* const md, std::deque<DT*>& dt)
 			real_y = std::max(0, std::min(real_y, static_cast<int>(md->_imagsProperty[dt[i]->_className][dt[i]->_index].height - 1))); // which rows
 			int tmp = static_cast<int>(dt[i]->_img.ptr<uchar>(real_y)[real_x]); //real_y at first
 
-			delta_x = dt[i]->_rotation(0, 0)*pos.end.x + dt[i]->_rotation(0, 1)*pos.end.y;
-			delta_y = dt[i]->_rotation(1, 0)*pos.end.x + dt[i]->_rotation(1, 1)*pos.end.y;
+			delta_x = dt[i]->_rotation(0, 0)*fl.end.x + dt[i]->_rotation(0, 1)*fl.end.y;
+			delta_y = dt[i]->_rotation(1, 0)*fl.end.x + dt[i]->_rotation(1, 1)*fl.end.y;
 			delta_x = dt[i]->_scale*delta_x*dt[i]->_bbox.width / 2.0;//在框内的坐标
 			delta_y = dt[i]->_scale*delta_y*dt[i]->_bbox.height / 2.0;
 			real_x = delta_x + dt[i]->_prdshape(_landmark_index, 0);//在整个图片内的坐标
@@ -671,7 +478,7 @@ void RandomForest::AssignCScore_Node(Node* nd, std::deque<DT*>& p_dt, std::deque
 	nd->_cscore = numerator / denominator;
 }
 
-void RandomForest::getCscore_singleTress(const Node* nd, DT* dt)
+void RandomForest::getCscore_singleTress(const Node* nd,  DT* dt)
 {
 	if (true == nd->_is_leaf)
 	{
@@ -680,19 +487,40 @@ void RandomForest::getCscore_singleTress(const Node* nd, DT* dt)
 	}
 	else
 	{
-		getCscore_singleTress(nd->_left_child, dt);
-		getCscore_singleTress(nd->_right_child, dt);
+		//Extract pixel difference feature
+		if (dt->_pixDiffFeat(nd->ft_index) < nd->_threshold)
+			getCscore_singleTress(nd->_left_child, dt);
+		else
+			getCscore_singleTress(nd->_right_child, dt);
 	}
 }
 
-void RandomForest::getCscore_wholeTress(const std::vector<std::vector<Node*>>&cascade, DT* dt)
+void RandomForest::getCscore_wholeTress(const std::vector<RandomForest>&cascade, MYDATA* md, DT* dt)
 {
+	calcRot_target(md->_Meanshape, dt);
+	std::deque<DT*> dt_temp;
+	dt_temp.push_back(dt);
 	for (int i = 0; i < cascade.size();i++) //foreach cascade
 	{
-		for (int j = 0; j < cascade[i].size(); j++)
+		for (int j = 0; j < cascade[i].trees_.size(); j++)
 		{
-			getCscore_singleTress(cascade[i][j], dt);
+			if (0 == (j%_trees_num_per_forest))
+				GeneratePixelDiff(md, dt_temp, cascade[i]._local_position[j/_trees_num_per_forest]);
+			getCscore_singleTress(cascade[i].trees_[j / _trees_num_per_forest][j%_trees_num_per_forest], dt);
 		}
 	}
 }
 
+int RandomForest::GetLeafIndex_singleTress(Node* nd, DT* dt)
+{
+	if (true == nd->_is_leaf)
+	{
+		int id = nd->_leaf_identity; //Accumulating the classification score
+		return id;
+	}
+	else
+	{
+		GetLeafIndex_singleTress(nd->_left_child, dt);
+		GetLeafIndex_singleTress(nd->_right_child, dt);
+	}
+}

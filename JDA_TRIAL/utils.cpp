@@ -6,7 +6,7 @@ using namespace std;
 
 
 
-void MYDATA::_DataLoading(const string& path, const string& type, MYDATA* md)
+void MYDATA::_DataLoading(const string& path, const string& type, MYDATA* md, const int n_pt)
 {
 	static int path_index = 0; //用来修改样本标签的
 	static int class_index = -1;
@@ -29,7 +29,7 @@ void MYDATA::_DataLoading(const string& path, const string& type, MYDATA* md)
 			curr = path + "\\" + filefind.name;
 			string temp = filefind.name;
 			md->_dname.push_back(temp);
-			_DataLoading(curr, type, md);
+			_DataLoading(curr, type, md, n_pt);
 			class_index += 2;
 			
 		}
@@ -49,7 +49,7 @@ void MYDATA::_DataLoading(const string& path, const string& type, MYDATA* md)
 			}
 			if (substr == "pts")
 			{
-				cv::Mat_<float> shape = _ReadPts(path + "\\" + filefind.name, "pts", 51);
+				cv::Mat_<float> shape = _ReadPts(path + "\\" + filefind.name, "pts", n_pt);
 				md->_gtShape.push_back(shape);
 			}	
 		}
@@ -58,7 +58,7 @@ void MYDATA::_DataLoading(const string& path, const string& type, MYDATA* md)
 }
 cv::Mat_<float>  MYDATA::_ReadPts(const string& ptsName, const string& type, const int npt)
 {
-	cv::Mat_<float> shape(npt, 2);
+	cv::Mat_<float> shape(npt,2);
 	string flag;
 
 	ifstream ifs(ptsName);
@@ -68,6 +68,11 @@ cv::Mat_<float>  MYDATA::_ReadPts(const string& ptsName, const string& type, con
 	int is_number = 0;
 	int pt_index = 0;
 	int lineflag = 0;
+
+
+	int pt_id[17] = { 18, 20, 22, 23, 25, 27, 32, 34, 36, 37, 40, 43, 46, 49, 55, 52, 58 };
+	cv::Mat_<float>tp(68, 2);
+
 
 	while (getline(ifs, point_str))
 	{
@@ -133,11 +138,24 @@ cv::Mat_<float>  MYDATA::_ReadPts(const string& ptsName, const string& type, con
 				shape(pt_index - 17, 1) = pointy;
 			}
 			break;
+		case 17:
+			tp(pt_index, 0) = pointx;
+			tp(pt_index, 1) = pointy;
+			break;
 		}
 		pt_index += 1;
 		is_number += 1;
 	}
 	ifs.close();
+
+	if (npt == 17)
+	{
+		for (int i = 0; i < 17; i++)
+		{
+			shape(i, 0) = tp(pt_id[i] - 1, 0);
+			shape(i, 1) = tp(pt_id[i] - 1, 1);
+		}
+	}
 	return shape;
 }
 MYDATA::~MYDATA()
@@ -168,9 +186,12 @@ void MYDATA::_GetBbox(const vector<cv::Mat_<float>>& shape, const cv::Scalar_<fl
 }
 void MYDATA::_CalcMeanshape()
 {
-	_Meanshape.create(_gtShape[0].rows , 2);
+	_Meanshape = cv::Mat::zeros(_gtShape[0].rows , 2, CV_32FC1);
 	for (int i = 0; i < _gtShape.size(); i++)
+	{
 		_Meanshape += ProjectShape(_gtShape[i].col(0), _gtShape[i].col(1), _bbox_origial[i]);
+	}
+		
 	_Meanshape = 1.0 / _gtShape.size()*_Meanshape;
 }
 
@@ -440,7 +461,7 @@ void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<dou
 DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm)
 {
 
-	int rdn = RandNumberUniform<int>(0,  pm._n_n- 1);//Selecting a sample from negative set randomly
+	int rdn = RandNumberUniform<int>(0, md->_imagsProperty["NEGATIVE"].size()- 1);//Selecting a sample from negative set randomly
 
 	/* code */
 	DT* result = new DT;
@@ -461,7 +482,25 @@ DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm)
 	result->_lable = -1;
 	result->_path = md->_imagsPath["NEGATIVE"][rdn];
 	result->_img = cv::imread(result->_path, 0);
-	result->_prdshape = ProjectShape(md->_Meanshape.col(0), md->_Meanshape.col(1), result->_bbox);
-
+	result->_prdshape = ReProjection(md->_Meanshape, result->_bbox, cv::Scalar_<float>(1, 1, 1, 1));
+	result->_gtshape = ReProjection(md->_Meanshape, result->_bbox, cv::Scalar_<float>(1, 1, 1, 1));
+	result->_pixDiffFeat.create(1, pm._n_splitFeatures);
 	return result;
+}
+
+void calcRot_target(const cv::Mat_<float>& ms, DT* dt)
+{
+	dt->_regressionTarget = ProjectShape(dt->_gtshape.col(0), dt->_gtshape.col(1), dt->_bbox)
+		- ProjectShape(dt->_prdshape.col(0), dt->_prdshape.col(1), dt->_bbox);
+	cv::Mat_<double> rotation;
+	double scale;
+	getSimilarityTransform(ms, ProjectShape(dt->_prdshape.col(0), dt->_prdshape.col(1), dt->_bbox), rotation, scale);//求正向变换矩阵
+	
+	cv::transpose(rotation, rotation);
+	dt->_regressionTarget = scale * dt->_regressionTarget * rotation;
+	getSimilarityTransform(ProjectShape(dt->_prdshape.col(0), dt->_prdshape.col(1), dt->_bbox), ms, rotation, scale);//求逆向变换矩阵
+	dt->_rotation = rotation; //对齐到meanshape的旋转矩阵
+	dt->_scale = scale;//对其到meanshape的缩放系数
+
+	
 }

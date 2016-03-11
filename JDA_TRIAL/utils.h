@@ -73,10 +73,11 @@ struct DT
 	BBOX _bbox; //人脸框的属性
 	float _score; //分类评分
 	float _weight; //权重
-	cv::Mat_<double>_rotation; //形状对齐的旋转矩阵，注意如果负样本则为空
-	double _scale; //形状对齐的尺度系数，注意如果负样本则为空
+	cv::Mat_<double>_rotation; //对齐到meanshape的逆变换旋转矩阵，注意如果负样本则为空
+	double _scale; //对齐到meanshape的逆变换尺度系数，注意如果负样本则为空
 	cv::Mat_<double>_pixDiffFeat; //像素差分特征；
 	cv::Mat_<double>_regressionTarget;
+	cv::Mat_<float>_LBF;
 };
 
 class FeatureLocations
@@ -110,7 +111,7 @@ public:
 	cv::Mat_<float> _Meanshape;
 
 	void _CalcMeanshape();
-	void _DataLoading(const std::string& path, const std::string& type, MYDATA* md);
+	void _DataLoading(const std::string& path, const std::string& type, MYDATA* md, const int n_pt);
 	void _GetBbox(const std::vector<cv::Mat_<float>>& shape, const cv::Scalar_<float>& factor, std::vector<BBOX>& bbox_origial);
 
 	~MYDATA();
@@ -131,9 +132,10 @@ void ScaleVec(std::vector<T>&input)
 template<typename T>
 T RandNumberUniform(const T low, const T high)
 {
-	time_t current_time;
-	current_time = time(0);
-	cv::RNG rd(current_time);
+	/*time_t current_time;
+	current_time = time(0);*/
+	cv::waitKey(10);
+	cv::RNG rd(cvGetTickCount());
 	T rdn = rd.uniform(low, high);
 	return rdn;
 }
@@ -151,6 +153,8 @@ cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::
 void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<double>& shape_from,
 	cv::Mat_<double>& rotation, double& scale);
 DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm);
+
+void calcRot_target(const cv::Mat_<float>& ms, DT* dt);
 
 #endif
 
