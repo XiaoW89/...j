@@ -15,25 +15,33 @@ void JDA::trainJDA(MYDATA* const md)
 
 	std::deque<DT*> p_Dt, n_Dt;
 		//padding positive data
+#pragma omp parallel for
 	for (int i = 0; i < _pm._n_p; i++)
 	{
 		DT* temp = new DT;
 		
-		temp->_className = "POSITIVE";
-		temp->_weight = 1.0;
-		temp->_score = 0.0;
 		temp->_bbox = md->_bbox_origial[i];
-		temp->_gtshape = md->_gtShape[i];
-		temp->_lable = 1;
 		temp->_path = md->_imagsPath["POSITIVE"][i];
-		temp->_index = i;
+
 		temp->_img = cv::imread(temp->_path, 0);
-		temp->_prdshape = ReProjection(md->_Meanshape,  temp->_bbox, cv::Scalar_<float>(1,1,1,1)); //Initializing the predicted shape with mean shape, it will updated after
+		temp->_gtshape = md->_gtShape[i];
+		temp->_prdshape = ReProjection(md->_Meanshape, temp->_bbox, cv::Scalar_<float>(1, 1, 1, 1)); //Initializing the predicted shape with mean shape, it will updated after
 		temp->_pixDiffFeat.create(1, _pm._n_splitFeatures);
+		temp->_className = "POSITIVE";
+		
+
+		temp->_lable = 1;
+		temp->_index = i;
+		temp->_score = 0.0;
+		temp->_weight = 1.0;
+		temp->_scale = 1;
+
+	
 		p_Dt.push_back(temp);
 
 	}
 		//padding negative data
+#pragma omp parallel for
 	for (int i = 0; i < _pm._n_n; i++)
 	{
 		DT* temp = GeNegSamp(md, _pm);
@@ -42,6 +50,7 @@ void JDA::trainJDA(MYDATA* const md)
 
 	//********STEP2. Train JDA********
 	std::vector<RandomForest>cascade;
+	_shape_param_set.clear();
 
 	for (uint16 i = 0; i < _pm._T; i++)//Foreach Stage（Cascade）
 	{
@@ -56,7 +65,7 @@ void JDA::trainJDA(MYDATA* const md)
 
 		//********STEP 2.2 : Learn each stage********
 		RandomForest rf(_pm, i);
-		rf.TrainForest(md, _pm, p_Dt, n_Dt, cascade);
+		rf.TrainForest(md, _pm, _shape_param_set, p_Dt, n_Dt, cascade);
 		cascade.push_back(rf);
 
 
@@ -65,7 +74,7 @@ void JDA::trainJDA(MYDATA* const md)
 		for (int j = 0; j < p_Dt.size(); j++)
 		{
 			calcRot_target(md->_Meanshape, p_Dt[j]);
-			GetGlobalLBF(md, cascade[i], p_Dt[j]);
+			rf.GetGlobalLBF(md, p_Dt[j]);
 		}
 			//LibLinear
 		parameter param;
@@ -103,7 +112,7 @@ void JDA::trainJDA(MYDATA* const md)
 
 		uint16 s = 0;
 		model* md;
-		cv::Mat_<float>opt_w(this->_pm._L * 2, pb.n);
+		cv::Mat_<float>shape_param(this->_pm._L * 2, pb.n);
 
 		std::cout << "训练分类器：" << std::endl;
 		while (s < this->_pm._L * 2)
@@ -118,7 +127,7 @@ void JDA::trainJDA(MYDATA* const md)
 			}
 			md = train(&pb, &param);
 			for (uint16 j = 0; j < pb.n; j++)
-				opt_w(s, j) = md->w[j];
+				shape_param(s, j) = md->w[j];
 			s++;
 		}
 
@@ -127,7 +136,7 @@ void JDA::trainJDA(MYDATA* const md)
 		std::cout << "更新样本形状：" << std::endl;
 
 		for (int j = 0; j < p_Dt.size(); j++)
-			UpdateShape(opt_w, p_Dt[j]);
+			rf.UpdateShape(shape_param, p_Dt[j]);
 
 		std::cout << "计算误差：" << std::endl;
 		//calcRME(this->X0, this->gtp_x, this->gtp_y, this->ps.right_eye, this->ps.left_eye, this->ps.numRbbox, this->ps.numPt);
@@ -137,53 +146,9 @@ void JDA::trainJDA(MYDATA* const md)
 		free(pb.y);
 		free_and_destroy_model(&md);
 
-
+		_shape_param_set.push_back(shape_param);
 	}
 	//
 }
 
-void JDA::getlocallbf(const Node* nd, DT* dt)
-{
-	static int count = 0;
 
-	if (true == nd->_is_leaf)
-	{
-		dt->_LBF(nd->_leaf_identity) = 1;  //Accumulating the classification score
-		return;
-	}
-	else
-	{
-		//Extract pixel difference feature
-		if (dt->_pixDiffFeat(nd->ft_index) < nd->_threshold)
-			getlocallbf(nd->_left_child, dt);
-		else
-			getlocallbf(nd->_right_child, dt);
-	}
-}
-
-void JDA::GetGlobalLBF(MYDATA* md, RandomForest& rf, DT* dt)
-{
-	std::deque<DT*> dt_temp;
-	dt_temp.push_back(dt);
-	dt->_LBF = cv::Mat::zeros(1, rf._trees_num_per_forest*(rf._landmark_index + 1), CV_32FC1);
-	
-	for (int i = 0; i < rf.trees_.size(); i++)
-	{
-		if (0 == (i%rf._trees_num_per_forest))
-			rf.GeneratePixelDiff(md, dt_temp, rf._local_position[i / rf._trees_num_per_forest]);
-		getlocallbf(rf.trees_[i / rf._trees_num_per_forest][i%rf._trees_num_per_forest], dt);
-	}
-}
-
-void JDA::UpdateShape(const cv::Mat_<float>& weights, DT* dt)
-{
-	cv::Mat_<float> temp;
-	temp = dt->_LBF*weights(cv::Rect(0, 0, weights.cols, weights.rows / 2)).t();
-	dt->_prdshape.col(0) += temp.t();
-	temp = dt->_LBF*weights(cv::Rect(0, weights.rows / 2, weights.cols, weights.rows / 2)).t();
-	dt->_prdshape.col(1) += temp.t();
-	
-	cv::Mat_<double> rot;
-	cv::transpose(dt->_rotation, rot);
-	dt->_prdshape = dt->_scale * dt->_prdshape * rot;
-}

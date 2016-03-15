@@ -475,16 +475,21 @@ DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm)
 	result->_bbox.ctx = result->_bbox.x + result->_bbox.width / 2;
 	result->_bbox.cty = result->_bbox.y + result->_bbox.height / 2;
 
-	result->_className = "NEGATIVE";
-	result->_index = rdn;
-	result->_weight = 1.0;
-	result->_score = 0.0;
-	result->_lable = -1;
 	result->_path = md->_imagsPath["NEGATIVE"][rdn];
+
 	result->_img = cv::imread(result->_path, 0);
-	result->_prdshape = ReProjection(md->_Meanshape, result->_bbox, cv::Scalar_<float>(1, 1, 1, 1));
 	result->_gtshape = ReProjection(md->_Meanshape, result->_bbox, cv::Scalar_<float>(1, 1, 1, 1));
+	result->_prdshape = ReProjection(md->_Meanshape, result->_bbox, cv::Scalar_<float>(1, 1, 1, 1));
 	result->_pixDiffFeat.create(1, pm._n_splitFeatures);
+
+	result->_className = "NEGATIVE";
+	
+	result->_lable = -1;
+	result->_index = rdn;
+	result->_score = 0.0;
+	result->_weight = 1.0;
+	result->_scale = 1;
+
 	return result;
 }
 
@@ -501,6 +506,6 @@ void calcRot_target(const cv::Mat_<float>& ms, DT* dt)
 	getSimilarityTransform(ProjectShape(dt->_prdshape.col(0), dt->_prdshape.col(1), dt->_bbox), ms, rotation, scale);//求逆向变换矩阵
 	dt->_rotation = rotation; //对齐到meanshape的旋转矩阵
 	dt->_scale = scale;//对其到meanshape的缩放系数
-
-	
 }
+
+

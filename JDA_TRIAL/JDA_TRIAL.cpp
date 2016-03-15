@@ -36,7 +36,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		assert(pm._K % pm._L == 0);
 		pm._n_childTress = pm._K / pm._L;
 		pm._n_deepth = 3;
-		pm._n_splitFeatures = 300;
+		pm._n_splitFeatures = 400;
 		pm._radius.push_back(0.4);
 		pm._radius.push_back(0.3);
 		pm._radius.push_back(0.2);

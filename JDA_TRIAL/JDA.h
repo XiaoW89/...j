@@ -13,12 +13,12 @@ private:
 	std::deque<float> _score_neg;
 	std::deque<float> _score_pos;
 
-	void getlocallbf(const Node* nd, DT* dt);
-	void GetGlobalLBF(MYDATA* md, RandomForest& rf, DT* dt);
-	void UpdateShape(const cv::Mat_<float>& weights, DT* dt);
+	std::vector<cv::Mat_<float>>_shape_param_set;
+
 
 
 public:
+
 	JDA();
 	JDA(const PARAMETERS&);
 	~JDA();

@@ -63,21 +63,35 @@ struct IMGPROPERTY
 
 struct DT
 {
-	cv::Mat _img; //愿图像(灰度图)
-	std::string _className; //“POSITIVE”或者“NEGATIVE";
-	int _index; //标记该样本取自正/负样本集中的哪一张图像
-	std::string _path; //愿样本图像的绝对的路径
-	uint16 _lable; //1为正样本，-1为负样本
-	cv::Mat_<float> _gtshape; //真实形状
-	cv::Mat_<float> _prdshape; //预测形状，用meanshape对其进行初始化
-	BBOX _bbox; //人脸框的属性
-	float _score; //分类评分
-	float _weight; //权重
-	cv::Mat_<double>_rotation; //对齐到meanshape的逆变换旋转矩阵，注意如果负样本则为空
-	double _scale; //对齐到meanshape的逆变换尺度系数，注意如果负样本则为空
-	cv::Mat_<double>_pixDiffFeat; //像素差分特征；
-	cv::Mat_<double>_regressionTarget;
-	cv::Mat_<float>_LBF;
+	cv::Mat _img; //original image(gray)
+	cv::Mat_<float> _gtshape; //ground-truth shape, and equal to meanshape if it is negtive sample 
+	cv::Mat_<float> _prdshape; //predicted shape(current shape)，intialized with mean shape
+	cv::Mat_<double>_rotation; //The invese transformation matrix
+	cv::Mat_<double>_pixDiffFeat; //Only contain current weak classifier's feature； 
+	cv::Mat_<double>_regressionTarget; 
+	cv::Mat_<float>_LBF; 
+
+
+	std::string _className; //“POSITIVE”or“NEGATIVE";
+	std::string _path; //the path of origial image
+
+	uint16 _lable; //1 for pos，-1 for neg
+	int _index; //laled the origial image's index in MYDATA set
+	float _score; //classfy score
+	float _weight; //weight
+	double _scale; // Reciprocal of scale factor of gtshape alinged to meanshape
+	
+	BBOX _bbox; //face region 
+	
+
+	DT()
+	{
+		_index = -1;
+		_lable = -99;
+		_score = 0.0;
+		_weight = 0.0;
+		_scale = 1;
+	}
 };
 
 class FeatureLocations
@@ -95,6 +109,41 @@ public:
 	};
 };
 
+enum CorR
+{
+	CLASSIFICATION = 0, REGRESSION
+};
+
+struct ASTANDAR
+{
+	float _TPR, _FPR, _Theta;
+	ASTANDAR(){ _TPR = 0; _FPR = 0; _Theta = 0; }
+	bool operator <(const ASTANDAR as) const
+	{
+		return (as._TPR <= _TPR) && (_FPR <= as._FPR);
+	}
+};
+
+class Node {
+public:
+	int _leaf_identity; // used only when it is leaf node, and is unique among the tree
+	Node* _left_child;
+	Node* _right_child;
+	int _samples;
+	bool _is_leaf;
+	int _depth; // recording current depth
+	double _threshold;
+	bool _thre_changed;
+	CorR _cor;
+	double _cscore;
+	FeatureLocations _feature_locations;
+	int ft_index;
+	Node(Node* left, Node* right, double thres, bool leaf);
+	Node(Node* left, Node* right, double thres);
+	Node();
+
+	ASTANDAR as;
+};
 
 class MYDATA
 {
@@ -106,7 +155,7 @@ public:
 	std::map<std::string, std::vector<IMGPROPERTY>> _imagsProperty;
 	std::vector<cv::Mat_<float>>_gtShape;
 	std::map<std::string, std::vector<uint32>>_labels;
-	std::vector<std::string>_dname; //文件夹名
+	std::vector<std::string>_dname; //file name
 	std::vector<BBOX> _bbox_origial;
 	cv::Mat_<float> _Meanshape;
 
@@ -134,7 +183,7 @@ T RandNumberUniform(const T low, const T high)
 {
 	/*time_t current_time;
 	current_time = time(0);*/
-	cv::waitKey(10);
+	cv::waitKey(100);
 	cv::RNG rd(cvGetTickCount());
 	T rdn = rd.uniform(low, high);
 	return rdn;
@@ -155,6 +204,9 @@ void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<dou
 DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm);
 
 void calcRot_target(const cv::Mat_<float>& ms, DT* dt);
+
+
+
 
 #endif
 
