@@ -31,17 +31,9 @@ public:
 		CorR corr, const std::deque<DT*>& p_dt, const std::deque<DT*>& n_dt);
 
 	void LearnShapeIncrement(const std::vector<std::vector<Node*>>&cascade, std::deque<DT*>& p_dt);
-
 	RandomForest();
-
 	RandomForest(PARAMETERS& param,  int stage);
-
-
 	void GeneratePixelDiff(MYDATA* const md, std::deque<DT*>& dt, const std::vector<FeatureLocations>& fl);
-
-	void getlocallbf(const Node* nd, DT* dt);
-	void GetGlobalLBF(MYDATA* md,  DT* dt);
-	void UpdateShape(const cv::Mat_<float>& weights, DT* dt);
 
 private:
 
@@ -51,12 +43,15 @@ private:
 
 	void getCscore_singleTress(const Node* nd, DT* dt);
 
-	void getCscore_wholeTress(std::vector<RandomForest>&cascade,
+	bool getCscore_wholeTress(std::vector<RandomForest>&cascade,
 		const std::vector<cv::Mat_<float>>&_shape_param_set, MYDATA* md, DT* dt);
 
 	//int GetLeafIndex_singleTress(Node* nd, DT* dt);
 
 
 };
+
+void getlocallbf(const Node* nd, DT* dt);
+void GetGlobalLBF(MYDATA* md, RandomForest& rf, DT* dt);
 
 #endif

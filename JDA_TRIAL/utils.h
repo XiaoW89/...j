@@ -1,6 +1,7 @@
 #ifndef UTILS_____
 #define UTILS_____
 
+#include "stdafx.h"
 #include <vector>
 #include <deque>
 #include <iostream>
@@ -75,9 +76,10 @@ struct DT
 	std::string _className; //¡°POSITIVE¡±or¡°NEGATIVE";
 	std::string _path; //the path of origial image
 
-	uint16 _lable; //1 for pos£¬-1 for neg
+	uint16 _lable_true; //1 for pos£¬-1 for neg
+	uint16 _label_preditced;
 	int _index; //laled the origial image's index in MYDATA set
-	float _score; //classfy score
+	float _cscore; //classfy score
 	float _weight; //weight
 	double _scale; // Reciprocal of scale factor of gtshape alinged to meanshape
 	
@@ -87,8 +89,8 @@ struct DT
 	DT()
 	{
 		_index = -1;
-		_lable = -99;
-		_score = 0.0;
+		_lable_true = -99;
+		_cscore = 0.0;
 		_weight = 0.0;
 		_scale = 1;
 	}
@@ -183,13 +185,14 @@ T RandNumberUniform(const T low, const T high)
 {
 	/*time_t current_time;
 	current_time = time(0);*/
-	cv::waitKey(100);
-	cv::RNG rd(cvGetTickCount());
+	static double tp = cvGetTickCount();
+	cv::RNG rd(cvGetTickCount() + tp);
 	T rdn = rd.uniform(low, high);
+	tp *= 1.1;
 	return rdn;
 }
 
-inline void AsignWeight(DT* dt){ dt->_weight = exp(-1 * dt->_lable* dt->_score); };
+inline void AsignWeight(DT* dt){ dt->_weight = exp(-1 * dt->_lable_true* dt->_cscore); };
 
 void drawFeatureP(cv::Mat& image, const cv::Rect& faceRegion, const cv::Mat_<float>&gtp, cv::Scalar sc);
 void maxminVec(const cv::Mat_<float>& shape, BBOX& wh);
@@ -202,9 +205,8 @@ cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::
 void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<double>& shape_from,
 	cv::Mat_<double>& rotation, double& scale);
 DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm);
-
 void calcRot_target(const cv::Mat_<float>& ms, DT* dt);
-
+void UpdateShape(const cv::Mat_<float>& weights, DT* dt);
 
 
 

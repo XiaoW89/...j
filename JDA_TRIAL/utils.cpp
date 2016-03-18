@@ -2,10 +2,6 @@
 
 using namespace std;
 
-
-
-
-
 void MYDATA::_DataLoading(const string& path, const string& type, MYDATA* md, const int n_pt)
 {
 	static int path_index = 0; //用来修改样本标签的
@@ -484,9 +480,10 @@ DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm)
 
 	result->_className = "NEGATIVE";
 	
-	result->_lable = -1;
+	result->_lable_true = -1;
+	result->_label_preditced = 0;
 	result->_index = rdn;
-	result->_score = 0.0;
+	result->_cscore = 0.0;
 	result->_weight = 1.0;
 	result->_scale = 1;
 
@@ -508,4 +505,16 @@ void calcRot_target(const cv::Mat_<float>& ms, DT* dt)
 	dt->_scale = scale;//对其到meanshape的缩放系数
 }
 
+void UpdateShape(const cv::Mat_<float>& weights, DT* dt)
+{
+	cv::Mat_<float> temp;
+	temp = dt->_LBF*weights(cv::Rect(0, 0, weights.cols, weights.rows / 2)).t();
+	dt->_prdshape.col(0) += temp.t();
+	temp = dt->_LBF*weights(cv::Rect(0, weights.rows / 2, weights.cols, weights.rows / 2)).t();
+	dt->_prdshape.col(1) += temp.t();
+
+	cv::Mat_<double> rot;
+	cv::transpose(dt->_rotation, rot);
+	dt->_prdshape = dt->_scale * dt->_prdshape * rot;
+}
 

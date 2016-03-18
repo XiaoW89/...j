@@ -30,11 +30,13 @@ void JDA::trainJDA(MYDATA* const md)
 		temp->_className = "POSITIVE";
 		
 
-		temp->_lable = 1;
+		temp->_lable_true = 1;
+		temp->_label_preditced = 0;
 		temp->_index = i;
-		temp->_score = 0.0;
+		temp->_cscore = 0.0;
 		temp->_weight = 1.0;
 		temp->_scale = 1;
+
 
 	
 		p_Dt.push_back(temp);
@@ -74,7 +76,7 @@ void JDA::trainJDA(MYDATA* const md)
 		for (int j = 0; j < p_Dt.size(); j++)
 		{
 			calcRot_target(md->_Meanshape, p_Dt[j]);
-			rf.GetGlobalLBF(md, p_Dt[j]);
+			GetGlobalLBF(md, rf, p_Dt[j]);
 		}
 			//LibLinear
 		parameter param;
@@ -136,7 +138,10 @@ void JDA::trainJDA(MYDATA* const md)
 		std::cout << "更新样本形状：" << std::endl;
 
 		for (int j = 0; j < p_Dt.size(); j++)
-			rf.UpdateShape(shape_param, p_Dt[j]);
+			UpdateShape(shape_param, p_Dt[j]);
+		for (int j = 0; j < n_Dt.size(); j++)
+			UpdateShape(shape_param, n_Dt[j]);
+
 
 		std::cout << "计算误差：" << std::endl;
 		//calcRME(this->X0, this->gtp_x, this->gtp_y, this->ps.right_eye, this->ps.left_eye, this->ps.numRbbox, this->ps.numPt);
