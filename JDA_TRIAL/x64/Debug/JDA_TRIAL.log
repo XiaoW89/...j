@@ -1,71 +1,48 @@
-﻿Build started 2016/3/14 18:33:55.
-     1>Project "F:\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj" on node 2 (Rebuild target(s)).
+﻿生成启动时间为 2016/3/16 16:39:34。
+     1>项目“H:\gitspace\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
-         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"x64\Debug\JDA_TRIAL.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt stdafx.cpp
-         stdafx.cpp
-         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TC /errorReport:prompt "D:\liblinear-master\liblinear-master\blas\daxpy.c" "D:\liblinear-master\liblinear-master\blas\ddot.c" "D:\liblinear-master\liblinear-master\blas\dnrm2.c" "D:\liblinear-master\liblinear-master\blas\dscal.c"
-         dscal.c
-         dnrm2.c
-         ddot.c
-         daxpy.c
-         Generating Code...
-         D:\Program Files\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt "D:\liblinear-master\liblinear-master\linear.cpp" "D:\liblinear-master\liblinear-master\tron.cpp" JDA.cpp randomforest.cpp utils.cpp
-         utils.cpp
-     1>utils.cpp(16): warning C4244: '=' : conversion from 'intptr_t' to 'int', possible loss of data
-     1>utils.cpp(39): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
-     1>utils.cpp(47): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>utils.cpp(220): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>utils.cpp(221): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>utils.cpp(223): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>utils.cpp(265): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>utils.cpp(266): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>utils.cpp(287): warning C4267: 'argument' : conversion from 'size_t' to 'int', possible loss of data
-     1>utils.cpp(334): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>utils.cpp(392): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>utils.cpp(404): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
-     1>utils.cpp(464): warning C4267: 'argument' : conversion from 'size_t' to 'const int', possible loss of data
-     1>utils.cpp(471): warning C4305: 'argument' : truncation from 'double' to 'const float'
-     1>utils.cpp(472): warning C4305: 'argument' : truncation from 'double' to 'const float'
-     1>utils.cpp(473): warning C4305: 'argument' : truncation from 'double' to 'const float'
-     1>utils.cpp(474): warning C4305: 'argument' : truncation from 'double' to 'const float'
+         D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt randomforest.cpp
          randomforest.cpp
-     1>randomforest.cpp : warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
-     1>randomforest.cpp(42): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
-     1>randomforest.cpp(43): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
-     1>randomforest.cpp(78): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>randomforest.cpp(83): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>randomforest.cpp(121): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
-     1>randomforest.cpp(214): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
-     1>randomforest.cpp(259): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
-     1>randomforest.cpp(260): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
-     1>randomforest.cpp(278): warning C4244: 'argument' : conversion from 'float' to 'unsigned __int64', possible loss of data
-     1>randomforest.cpp(280): warning C4244: 'argument' : conversion from 'double' to 'const int', possible loss of data
-     1>randomforest.cpp(283): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
-     1>randomforest.cpp(339): warning C4244: 'argument' : conversion from 'double' to 'const int', possible loss of data
-     1>randomforest.cpp(342): warning C4244: 'argument' : conversion from 'double' to 'const int', possible loss of data
-     1>randomforest.cpp(346): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
-     1>randomforest.cpp(360): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
-     1>randomforest.cpp(361): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
-     1>randomforest.cpp(362): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
-     1>randomforest.cpp(363): warning C4244: 'initializing' : conversion from 'unsigned __int64' to 'float', possible loss of data
-     1>randomforest.cpp(439): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
-     1>randomforest.cpp(440): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
-     1>randomforest.cpp(449): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
-     1>randomforest.cpp(450): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
-     1>randomforest.cpp(460): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>randomforest.cpp(484): warning C4244: '+=' : conversion from 'const double' to 'float', possible loss of data
-     1>randomforest.cpp(520): error C2660: 'RandomForest::GetGlobalLBF' : function does not take 3 arguments
-     1>randomforest.cpp(595): fatal error C1075: end of file found before the left brace '{' at 'randomforest.cpp(585)' was matched
-         JDA.cpp
-     1>JDA.cpp(19): warning C4018: '<' : signed/unsigned mismatch
-     1>JDA.cpp(45): warning C4018: '<' : signed/unsigned mismatch
-     1>JDA.cpp(92): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
-     1>JDA.cpp(130): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-         tron.cpp
-         linear.cpp
-         Generating Code...
-     1>Done Building Project "F:\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj" (Rebuild target(s)) -- FAILED.
+     1>randomforest.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+     1>randomforest.cpp(43): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+     1>randomforest.cpp(44): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+     1>randomforest.cpp(78): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+     1>randomforest.cpp(83): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+     1>randomforest.cpp(121): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(231): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+     1>randomforest.cpp(276): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(277): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(295): warning C4244: “参数”: 从“float”转换到“unsigned __int64”，可能丢失数据
+     1>randomforest.cpp(297): warning C4244: “参数”: 从“double”转换到“const int”，可能丢失数据
+     1>randomforest.cpp(300): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(356): warning C4244: “参数”: 从“double”转换到“const int”，可能丢失数据
+     1>randomforest.cpp(359): warning C4244: “参数”: 从“double”转换到“const int”，可能丢失数据
+     1>randomforest.cpp(363): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(377): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(378): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(379): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(380): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(456): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(457): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(466): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(467): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(477): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>randomforest.cpp(501): warning C4244: “+=”: 从“const double”转换到“float”，可能丢失数据
+       Link:
+         D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"H:\gitspace\JDA_EX\x64\Debug\JDA_TRIAL.exe" /INCREMENTAL /NOLOGO opencv_ml2411d.lib opencv_calib3d2411d.lib opencv_contrib2411d.lib opencv_core2411d.lib opencv_features2d2411d.lib opencv_flann2411d.lib opencv_gpu2411d.lib opencv_highgui2411d.lib opencv_imgproc2411d.lib opencv_legacy2411d.lib opencv_objdetect2411d.lib opencv_ts2411d.lib opencv_video2411d.lib opencv_nonfree2411d.lib opencv_ocl2411d.lib opencv_photo2411d.lib opencv_stitching2411d.lib opencv_superres2411d.lib opencv_videostab2411d.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"H:\gitspace\JDA_EX\x64\Debug\JDA_TRIAL.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"H:\gitspace\JDA_EX\x64\Debug\JDA_TRIAL.lib" /MACHINE:X64 x64\Debug\daxpy.obj
+         x64\Debug\ddot.obj
+         x64\Debug\dnrm2.obj
+         x64\Debug\dscal.obj
+         x64\Debug\linear.obj
+         x64\Debug\tron.obj
+         x64\Debug\JDA.obj
+         x64\Debug\JDA_TRIAL.obj
+         x64\Debug\randomforest.obj
+         x64\Debug\stdafx.obj
+         x64\Debug\utils.obj
+         JDA_TRIAL.vcxproj -> H:\gitspace\JDA_EX\x64\Debug\JDA_TRIAL.exe
+     1>已完成生成项目“H:\gitspace\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj”(Build 个目标)的操作。
 
-Build FAILED.
+生成成功。
 
-Time Elapsed 00:00:02.59
+已用时间 00:00:02.33

@@ -15,37 +15,42 @@ void JDA::trainJDA(MYDATA* const md)
 
 	std::deque<DT*> p_Dt, n_Dt;
 		//padding positive data
-#pragma omp parallel for
+
 	for (int i = 0; i < _pm._n_p; i++)
 	{
+		float w = md->_imagsProperty["POSITIVE"][i].width;
+		float h = md->_imagsProperty["POSITIVE"][i].height;
+
 		DT* temp = new DT;
-		
 		temp->_bbox = md->_bbox_origial[i];
 		temp->_path = md->_imagsPath["POSITIVE"][i];
-
-		temp->_img = cv::imread(temp->_path, 0);
+		
 		temp->_gtshape = md->_gtShape[i];
 		temp->_prdshape = ReProjection(md->_Meanshape, temp->_bbox, cv::Scalar_<float>(1, 1, 1, 1)); //Initializing the predicted shape with mean shape, it will updated after
 		temp->_pixDiffFeat.create(1, _pm._n_splitFeatures);
 		temp->_className = "POSITIVE";
 		
 
-		temp->_lable = 1;
+		temp->_lable_true = 1;
+		temp->_label_preditced = 0;
 		temp->_index = i;
-		temp->_score = 0.0;
+		temp->_cscore = 0.0;
 		temp->_weight = 1.0;
 		temp->_scale = 1;
 
-	
 		p_Dt.push_back(temp);
 
 	}
 		//padding negative data
-#pragma omp parallel for
+
+	//int cc = 1;
+
 	for (int i = 0; i < _pm._n_n; i++)
 	{
 		DT* temp = GeNegSamp(md, _pm);
 		n_Dt.push_back(temp);
+		//cc++;
+		//std::cout << cc << std::endl;
 	}
 
 	//********STEP2. Train JDA********
@@ -56,10 +61,10 @@ void JDA::trainJDA(MYDATA* const md)
 	{
 		//********STEP 2.1 : Compute similarity transform matrix , scale factor and regression target********
 		std::cout << "calculate regression targets" << std::endl;
-#pragma omp parallel for
+
 		for (int j = 0; j < p_Dt.size(); j++)
 			calcRot_target(md->_Meanshape, p_Dt[j]);
-#pragma omp parallel for
+
 		for (int j = 0; j < n_Dt.size(); j++)
 			calcRot_target(md->_Meanshape, n_Dt[j]);
 
@@ -74,7 +79,7 @@ void JDA::trainJDA(MYDATA* const md)
 		for (int j = 0; j < p_Dt.size(); j++)
 		{
 			calcRot_target(md->_Meanshape, p_Dt[j]);
-			rf.GetGlobalLBF(md, p_Dt[j]);
+			GetGlobalLBF(md, rf, p_Dt[j]);
 		}
 			//LibLinear
 		parameter param;
@@ -136,7 +141,10 @@ void JDA::trainJDA(MYDATA* const md)
 		std::cout << "更新样本形状：" << std::endl;
 
 		for (int j = 0; j < p_Dt.size(); j++)
-			rf.UpdateShape(shape_param, p_Dt[j]);
+			UpdateShape(shape_param, p_Dt[j]);
+		for (int j = 0; j < n_Dt.size(); j++)
+			UpdateShape(shape_param, n_Dt[j]);
+
 
 		std::cout << "计算误差：" << std::endl;
 		//calcRME(this->X0, this->gtp_x, this->gtp_y, this->ps.right_eye, this->ps.left_eye, this->ps.numRbbox, this->ps.numPt);

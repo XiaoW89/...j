@@ -23,40 +23,43 @@ public:
 		const std::vector<cv::Mat_<float>>&shape_param_set, std::deque<DT*>& p_dt,
 		std::deque<DT*>& n_dt, std::vector<RandomForest>&cascade);
 
-	Node* BuildCRTree(std::set<int>& selected_ft_indexes,int current_depth, std::deque<DT*>& p_dt, 
-		std::deque<DT*>& n_dt);
+	Node* BuildCRTree(std::set<int>& selected_ft_indexes,int current_depth,  std::deque<DT*>& p_dt, 
+		std::deque<DT*>& n_dt, bool & falltree);
 
 	int FindSplitFeature(Node* node, std::set<int>& selected_ft_indexes, std::deque<DT*>& left_pos,
 		std::deque<DT*>& left_neg, std::deque<DT*>& right_pos, std::deque<DT*>& right_neg,
 		CorR corr, const std::deque<DT*>& p_dt, const std::deque<DT*>& n_dt);
+	int FindSplitFeature_random(Node* node, std::set<int>& selected_ft_indexes, std::deque<DT*>& left_pos,
+		std::deque<DT*>& left_neg, std::deque<DT*>& right_pos, std::deque<DT*>& right_neg,
+		CorR corr, const std::deque<DT*>& p_dt, const std::deque<DT*>& n_dt);
 
 	void LearnShapeIncrement(const std::vector<std::vector<Node*>>&cascade, std::deque<DT*>& p_dt);
-
 	RandomForest();
-
-	RandomForest(PARAMETERS& param,  int stage);
-
-
+	RandomForest(const PARAMETERS& param, const int stage);
 	void GeneratePixelDiff(MYDATA* const md, std::deque<DT*>& dt, const std::vector<FeatureLocations>& fl);
-
-	void getlocallbf(const Node* nd, DT* dt);
-	void GetGlobalLBF(MYDATA* md,  DT* dt);
-	void UpdateShape(const cv::Mat_<float>& weights, DT* dt);
+	void GeneratePixelDiff(MYDATA* const md, DT* dt, const std::vector<FeatureLocations>& fl_set);
 
 private:
+	double regreesion_split_test(const std::deque<DT*>&p_dt, const double tmp_threshold, const int ft_index, std::deque<DT*>&tp_left_pos,
+		std::deque<DT*>&tp_right_pos);
+	double classification_split_test(const std::deque<DT*>&p_dt, const std::deque<DT*>&n_dt, const double tmp_threshold, const int ft_index, std::deque<DT*>&tp_left_pos,
+		std::deque<DT*>&tp_right_pos, std::deque<DT*>&tp_right_neg, std::deque<DT*>&tp_left_neg);
 
-	CorR Split_Type(const int stage);
+	CorR Split_Type(const int depth);
 
 	void AssignCScore_Node(Node* nd, std::deque<DT*>& p_dt, std::deque<DT*>& n_dt);
 
 	void getCscore_singleTress(const Node* nd, DT* dt);
 
-	void getCscore_wholeTress(std::vector<RandomForest>&cascade,
+	bool getCscore_wholeTress(std::vector<RandomForest>&cascade,
 		const std::vector<cv::Mat_<float>>&_shape_param_set, MYDATA* md, DT* dt);
 
 	//int GetLeafIndex_singleTress(Node* nd, DT* dt);
 
 
 };
+
+void getlocallbf(const Node* nd, DT* dt);
+void GetGlobalLBF(MYDATA* md, RandomForest& rf, DT* dt);
 
 #endif

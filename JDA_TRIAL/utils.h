@@ -1,6 +1,7 @@
 #ifndef UTILS_____
 #define UTILS_____
 
+#include "stdafx.h"
 #include <vector>
 #include <deque>
 #include <iostream>
@@ -12,6 +13,9 @@
 #include <string>
 #include <map>
 #include <time.h>
+#include <set>
+#include <windows.h>
+#include <omp.h>
 
 
 
@@ -63,7 +67,6 @@ struct IMGPROPERTY
 
 struct DT
 {
-	cv::Mat _img; //original image(gray)
 	cv::Mat_<float> _gtshape; //ground-truth shape, and equal to meanshape if it is negtive sample 
 	cv::Mat_<float> _prdshape; //predicted shape(current shape)£¬intialized with mean shape
 	cv::Mat_<double>_rotation; //The invese transformation matrix
@@ -75,9 +78,10 @@ struct DT
 	std::string _className; //¡°POSITIVE¡±or¡°NEGATIVE";
 	std::string _path; //the path of origial image
 
-	uint16 _lable; //1 for pos£¬-1 for neg
+	int _lable_true; //1 for pos£¬-1 for neg
+	int _label_preditced;
 	int _index; //laled the origial image's index in MYDATA set
-	float _score; //classfy score
+	float _cscore; //classfy score
 	float _weight; //weight
 	double _scale; // Reciprocal of scale factor of gtshape alinged to meanshape
 	
@@ -87,8 +91,8 @@ struct DT
 	DT()
 	{
 		_index = -1;
-		_lable = -99;
-		_score = 0.0;
+		_lable_true = 9999;
+		_cscore = 0.0;
 		_weight = 0.0;
 		_scale = 1;
 	}
@@ -129,7 +133,8 @@ public:
 	int _leaf_identity; // used only when it is leaf node, and is unique among the tree
 	Node* _left_child;
 	Node* _right_child;
-	int _samples;
+	int _samples_neg;
+	int _samples_pos;
 	bool _is_leaf;
 	int _depth; // recording current depth
 	double _threshold;
@@ -158,12 +163,57 @@ public:
 	std::vector<std::string>_dname; //file name
 	std::vector<BBOX> _bbox_origial;
 	cv::Mat_<float> _Meanshape;
+	std::vector<cv::Mat>pos_images, neg_images;
 
 	void _CalcMeanshape();
 	void _DataLoading(const std::string& path, const std::string& type, MYDATA* md, const int n_pt);
 	void _GetBbox(const std::vector<cv::Mat_<float>>& shape, const cv::Scalar_<float>& factor, std::vector<BBOX>& bbox_origial);
 
 	~MYDATA();
+};
+
+class Random
+{
+public:
+	static Random& Instance()
+	{
+		static Random singleton;
+		return singleton;
+	}
+
+	int randomInt() {
+		return rand();
+	}
+
+	double randomDouble() {
+		return ((double)rand() + 1.0) / ((double)RAND_MAX + 2.0);
+	}
+
+	int uniformInt(int min, int max) {
+		int ret = randomInt() % (max - min + 1) + min;
+		return ret;
+	}
+
+	double uniformDouble(double min, double max) {
+		return uniformInt(min, max - 1) + randomDouble();
+	}
+
+	bool probability(double prob) {
+		if (prob > uniformDouble(0, 100)) { return true; }
+		else { return false; }
+	}
+
+	bool randomBool() {
+		return probability(50) ? true : false;
+	}
+
+	int randomSign() {
+		return probability(50) ? -1 : 1;
+	}
+
+
+	Random() { srand((unsigned)time(NULL)); }
+	~Random() { }
 };
 
 template<typename T> inline
@@ -181,15 +231,32 @@ void ScaleVec(std::vector<T>&input)
 template<typename T>
 T RandNumberUniform(const T low, const T high)
 {
-	/*time_t current_time;
-	current_time = time(0);*/
-	cv::waitKey(100);
-	cv::RNG rd(cvGetTickCount());
-	T rdn = rd.uniform(low, high);
-	return rdn;
-}
+	bool flag = true;
+	T rt = 0;
+	while (flag)
+	{
+		Random rdd = Random::Instance();
 
-inline void AsignWeight(DT* dt){ dt->_weight = exp(-1 * dt->_lable* dt->_score); };
+		if (typeid(T) != typeid(int))
+		{
+			if (low < 0)
+				rt = rdd.uniformDouble(low, high) - high;
+			else
+				rt = rdd.uniformDouble(low, high);
+		}
+		else
+		{
+			rt = rdd.uniformInt(low, high);
+		}
+
+		if (rt <= high && rt >= low)
+			flag = false;
+		else
+			flag = true;
+	}
+	return rt;
+}
+inline void AsignWeight(DT* dt){ dt->_weight = exp(-1 * dt->_lable_true* dt->_cscore); };
 
 void drawFeatureP(cv::Mat& image, const cv::Rect& faceRegion, const cv::Mat_<float>&gtp, cv::Scalar sc);
 void maxminVec(const cv::Mat_<float>& shape, BBOX& wh);
@@ -202,10 +269,8 @@ cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::
 void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<double>& shape_from,
 	cv::Mat_<double>& rotation, double& scale);
 DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm);
-
 void calcRot_target(const cv::Mat_<float>& ms, DT* dt);
-
-
+void UpdateShape(const cv::Mat_<float>& weights, DT* dt);
 
 
 #endif

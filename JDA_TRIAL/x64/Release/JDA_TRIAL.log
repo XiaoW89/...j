@@ -1,0 +1,50 @@
+﻿生成启动时间为 2016/3/16 16:55:48。
+     1>项目“H:\gitspace\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /O2 /Oi /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Release\\" /Fd"x64\Release\vc120.pdb" /Gd /TP /errorReport:prompt randomforest.cpp
+         randomforest.cpp
+     1>randomforest.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+     1>randomforest.cpp(43): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+     1>randomforest.cpp(44): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+     1>randomforest.cpp(78): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+     1>randomforest.cpp(83): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+     1>randomforest.cpp(121): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(231): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+     1>randomforest.cpp(276): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(277): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(295): warning C4244: “参数”: 从“float”转换到“unsigned __int64”，可能丢失数据
+     1>randomforest.cpp(297): warning C4244: “参数”: 从“double”转换到“const int”，可能丢失数据
+     1>randomforest.cpp(300): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(356): warning C4244: “参数”: 从“double”转换到“const int”，可能丢失数据
+     1>randomforest.cpp(359): warning C4244: “参数”: 从“double”转换到“const int”，可能丢失数据
+     1>randomforest.cpp(363): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(377): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(378): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(379): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(380): warning C4244: “初始化”: 从“unsigned __int64”转换到“float”，可能丢失数据
+     1>randomforest.cpp(456): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(457): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(466): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(467): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+     1>randomforest.cpp(477): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>randomforest.cpp(501): warning C4244: “+=”: 从“const double”转换到“float”，可能丢失数据
+       Link:
+         D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"H:\gitspace\JDA_EX\x64\Release\JDA_TRIAL.exe" /INCREMENTAL:NO /NOLOGO opencv_ml2411.lib opencv_calib3d2411.lib opencv_contrib2411.lib opencv_core2411.lib opencv_features2d2411.lib opencv_flann2411.lib opencv_gpu2411.lib opencv_highgui2411.lib opencv_imgproc2411.lib opencv_legacy2411.lib opencv_objdetect2411.lib opencv_ts2411.lib opencv_video2411.lib opencv_nonfree2411.lib opencv_ocl2411.lib opencv_photo2411.lib opencv_stitching2411.lib opencv_superres2411.lib opencv_videostab2411.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"H:\gitspace\JDA_EX\x64\Release\JDA_TRIAL.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"H:\gitspace\JDA_EX\x64\Release\JDA_TRIAL.lib" /MACHINE:X64 x64\Release\daxpy.obj
+         x64\Release\ddot.obj
+         x64\Release\dnrm2.obj
+         x64\Release\dscal.obj
+         x64\Release\linear.obj
+         x64\Release\tron.obj
+         x64\Release\JDA.obj
+         x64\Release\JDA_TRIAL.obj
+         x64\Release\randomforest.obj
+         x64\Release\stdafx.obj
+         x64\Release\utils.obj
+         正在生成代码
+         已完成代码的生成
+         JDA_TRIAL.vcxproj -> H:\gitspace\JDA_EX\x64\Release\JDA_TRIAL.exe
+     1>已完成生成项目“H:\gitspace\JDA_EX\JDA_TRIAL\JDA_TRIAL.vcxproj”(Build 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:05.81

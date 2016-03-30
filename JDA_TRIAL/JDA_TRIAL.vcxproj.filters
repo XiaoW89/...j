@@ -50,22 +50,22 @@
     <ClCompile Include="randomforest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D:\liblinear-master\liblinear-master\linear.cpp">
+    <ClCompile Include="F:\liblinear-master\liblinear-master\linear.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D:\liblinear-master\liblinear-master\tron.cpp">
+    <ClCompile Include="F:\liblinear-master\liblinear-master\tron.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D:\liblinear-master\liblinear-master\blas\daxpy.c">
+    <ClCompile Include="F:\liblinear-master\liblinear-master\blas\daxpy.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D:\liblinear-master\liblinear-master\blas\ddot.c">
+    <ClCompile Include="F:\liblinear-master\liblinear-master\blas\ddot.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D:\liblinear-master\liblinear-master\blas\dnrm2.c">
+    <ClCompile Include="F:\liblinear-master\liblinear-master\blas\dnrm2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D:\liblinear-master\liblinear-master\blas\dscal.c">
+    <ClCompile Include="F:\liblinear-master\liblinear-master\blas\dscal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

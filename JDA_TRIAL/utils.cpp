@@ -2,10 +2,6 @@
 
 using namespace std;
 
-
-
-
-
 void MYDATA::_DataLoading(const string& path, const string& type, MYDATA* md, const int n_pt)
 {
 	static int path_index = 0; //用来修改样本标签的
@@ -44,6 +40,15 @@ void MYDATA::_DataLoading(const string& path, const string& type, MYDATA* md, co
 				md->_labels[md->_dname[path_index - 1]].push_back(class_index);
 
 				cv::Mat img = cv::imread(path + "\\" + filefind.name, 0);
+				if (md->_dname[path_index - 1] == "POSITIVE")
+				{
+					pos_images.push_back(img);
+				}
+				else
+				{
+					neg_images.push_back(img);
+				}
+
 				IMGPROPERTY ip(img.cols, img.rows);
 				md->_imagsProperty[md->_dname[path_index - 1]].push_back(ip);
 			}
@@ -168,16 +173,17 @@ MYDATA::~MYDATA()
 void MYDATA::_GetBbox(const vector<cv::Mat_<float>>& shape, const cv::Scalar_<float>& factor, vector<BBOX>& bbox_origial)
 {
 	std::vector<cv::Rect>faces;
-	BBOX validBbox;
 	for (uint16 i = 0; i < shape.size(); i++)
 	{
+		
 		faces.clear();
 		bool result = true;
 
+		BBOX validBbox;
 		maxminVec(shape[i], validBbox);
 		validBbox.x -= factor(0)*validBbox.height;
 		validBbox.y -= factor(1)*validBbox.width;
-		validBbox.width += (2)*validBbox.height;
+		validBbox.width += factor(2)*validBbox.height;
 		validBbox.height = validBbox.width;
 		validBbox.ctx = validBbox.x + validBbox.width / 2;
 		validBbox.cty = validBbox.y + validBbox.height / 2;
@@ -460,33 +466,56 @@ void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<dou
 
 DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm)
 {
-
-	int rdn = RandNumberUniform<int>(0, md->_imagsProperty["NEGATIVE"].size()- 1);//Selecting a sample from negative set randomly
+	int rdn = RandNumberUniform<int>(0, md->_imagsProperty["NEGATIVE"].size() - 1);//Selecting a sample from negative set randomly
 
 	/* code */
 	DT* result = new DT;
 	float w = md->_imagsProperty["NEGATIVE"][rdn].width;
 	float h = md->_imagsProperty["NEGATIVE"][rdn].height;
 
-	result->_bbox.x = RandNumberUniform<float>(0.2, 0.8)*w; //This scope can be varied  
-	result->_bbox.y = RandNumberUniform<float>(0.2, 0.8)*h;
+	result->_bbox.x = RandNumberUniform<float>(0.2, 0.6)*w; //This scope can be varied  
+	result->_bbox.y = RandNumberUniform<float>(0.2, 0.6)*h;
 	result->_bbox.width = RandNumberUniform<float>(0.2, 0.5)*w;
-	result->_bbox.height = RandNumberUniform<float>(0.2, 0.5)*h;
+	result->_bbox.height = result->_bbox.width;
 	result->_bbox.ctx = result->_bbox.x + result->_bbox.width / 2;
 	result->_bbox.cty = result->_bbox.y + result->_bbox.height / 2;
 
 	result->_path = md->_imagsPath["NEGATIVE"][rdn];
 
-	result->_img = cv::imread(result->_path, 0);
+	//make sure that bbox contained in image
+	if (result->_bbox.x + result->_bbox.width >= w)
+	{
+		result->_bbox.width -= (result->_bbox.x + result->_bbox.width - w - 1);
+		result->_bbox.height -= (result->_bbox.x + result->_bbox.width - w - 1);
+	}
+	if (result->_bbox.y + result->_bbox.height >= h)
+	{
+		result->_bbox.height -= (result->_bbox.y + result->_bbox.height - h - 1);
+		result->_bbox.width -= (result->_bbox.y + result->_bbox.height - h - 1);
+	}
+
+	/*if (result->_bbox.x + 1.5*result->_bbox.width >= w 
+		| result->_bbox.y + 1.5*result->_bbox.height >= h
+		| result->_bbox.x - 0.5* result->_bbox.width <= 0
+		| result->_bbox.y - 0.5*result->_bbox.height<=0)
+	{
+		float bRight = result->_bbox.x + 1.5*result->_bbox.width - w + 1;
+		float bBottom = result->_bbox.y + 1.5*result->_bbox.height - h + 1;
+		float bTop = abs(result->_bbox.y - 0.5*result->_bbox.height);
+		float bLeft = abs(result->_bbox.x - 0.5* result->_bbox.width);
+		copyMakeBorder(result->_img, result->_img, bTop, bBottom, bLeft, bRight, cv::BORDER_REPLICATE);
+	}*/
+		
 	result->_gtshape = ReProjection(md->_Meanshape, result->_bbox, cv::Scalar_<float>(1, 1, 1, 1));
 	result->_prdshape = ReProjection(md->_Meanshape, result->_bbox, cv::Scalar_<float>(1, 1, 1, 1));
 	result->_pixDiffFeat.create(1, pm._n_splitFeatures);
 
 	result->_className = "NEGATIVE";
 	
-	result->_lable = -1;
+	result->_lable_true = -1;
+	result->_label_preditced = 0;
 	result->_index = rdn;
-	result->_score = 0.0;
+	result->_cscore = 0.0;
 	result->_weight = 1.0;
 	result->_scale = 1;
 
@@ -508,4 +537,16 @@ void calcRot_target(const cv::Mat_<float>& ms, DT* dt)
 	dt->_scale = scale;//对其到meanshape的缩放系数
 }
 
+void UpdateShape(const cv::Mat_<float>& weights, DT* dt)
+{
+	cv::Mat_<float> temp;
+	temp = dt->_LBF*weights(cv::Rect(0, 0, weights.cols, weights.rows / 2)).t();
+	dt->_prdshape.col(0) += temp.t();
+	temp = dt->_LBF*weights(cv::Rect(0, weights.rows / 2, weights.cols, weights.rows / 2)).t();
+	dt->_prdshape.col(1) += temp.t();
+
+	cv::Mat_<double> rot;
+	cv::transpose(dt->_rotation, rot);
+	dt->_prdshape = dt->_scale * dt->_prdshape * rot;
+}
 
