@@ -81,6 +81,11 @@ void JDA::trainJDA(MYDATA* const md)
 			calcRot_target(md->_Meanshape, p_Dt[j]);
 			GetGlobalLBF(md, rf, p_Dt[j]);
 		}
+		for (int j = 0; j < n_Dt.size(); j++)
+		{
+			calcRot_target(md->_Meanshape, n_Dt[j]);
+			GetGlobalLBF(md, rf, n_Dt[j]);
+		}
 			//LibLinear
 		parameter param;
 		param.solver_type = L2R_L2LOSS_SVR_DUAL;
@@ -145,6 +150,16 @@ void JDA::trainJDA(MYDATA* const md)
 		for (int j = 0; j < n_Dt.size(); j++)
 			UpdateShape(shape_param, n_Dt[j]);
 
+		for (int j = 0; j < p_Dt.size(); j++)
+		{
+			cv::Mat img = cv::imread(p_Dt[j]->_path, 1);
+			drawFeatureP(img, cv::Rect(0, 0, 0, 0), p_Dt[j]->_prdshape, cv::Scalar(0, 0, 255));
+			cv::imshow("predicted", img);
+			if (cv::waitKey(0) == 27)
+			{
+				break;
+			}
+		}
 
 		std::cout << "¼ÆËãÎó²î£º" << std::endl;
 		//calcRME(this->X0, this->gtp_x, this->gtp_y, this->ps.right_eye, this->ps.left_eye, this->ps.numRbbox, this->ps.numPt);

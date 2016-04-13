@@ -75,7 +75,9 @@ cv::Mat_<float>  MYDATA::_ReadPts(const string& ptsName, const string& type, con
 	int lineflag = 0;
 
 
-	int pt_id[17] = { 18, 20, 22, 23, 25, 27, 32, 34, 36, 37, 40, 43, 46, 49, 55, 52, 58 };
+	//int pt_id[17] = { 18, 20, 22, 23, 25, 27, 32, 34, 36, 37, 40, 43, 46, 49, 55, 52, 58 };
+	int pt_id[5] = { 34, 40, 43, 49, 55 };
+
 	cv::Mat_<float>tp(68, 2);
 
 
@@ -143,7 +145,7 @@ cv::Mat_<float>  MYDATA::_ReadPts(const string& ptsName, const string& type, con
 				shape(pt_index - 17, 1) = pointy;
 			}
 			break;
-		case 17:
+		case 5:
 			tp(pt_index, 0) = pointx;
 			tp(pt_index, 1) = pointy;
 			break;
@@ -153,9 +155,9 @@ cv::Mat_<float>  MYDATA::_ReadPts(const string& ptsName, const string& type, con
 	}
 	ifs.close();
 
-	if (npt == 17)
+	if (npt == 5)
 	{
-		for (int i = 0; i < 17; i++)
+		for (int i = 0; i < npt; i++)
 		{
 			shape(i, 0) = tp(pt_id[i] - 1, 0);
 			shape(i, 1) = tp(pt_id[i] - 1, 1);
@@ -405,7 +407,7 @@ cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::
 
 // get the rotation and scale parameters by transferring shape_from to shape_to, shape_to = M*shape_from
 void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<double>& shape_from,
-	cv::Mat_<double>& rotation, double& scale)
+	cv::Mat_<float>& rotation, double& scale)
 {
 	rotation = cv::Mat(2, 2, 0.0);
 	scale = 0;
@@ -526,7 +528,7 @@ void calcRot_target(const cv::Mat_<float>& ms, DT* dt)
 {
 	dt->_regressionTarget = ProjectShape(dt->_gtshape.col(0), dt->_gtshape.col(1), dt->_bbox)
 		- ProjectShape(dt->_prdshape.col(0), dt->_prdshape.col(1), dt->_bbox);
-	cv::Mat_<double> rotation;
+	cv::Mat_<float> rotation;
 	double scale;
 	getSimilarityTransform(ms, ProjectShape(dt->_prdshape.col(0), dt->_prdshape.col(1), dt->_bbox), rotation, scale);//求正向变换矩阵
 	
@@ -545,8 +547,8 @@ void UpdateShape(const cv::Mat_<float>& weights, DT* dt)
 	temp = dt->_LBF*weights(cv::Rect(0, weights.rows / 2, weights.cols, weights.rows / 2)).t();
 	dt->_prdshape.col(1) += temp.t();
 
-	cv::Mat_<double> rot;
-	cv::transpose(dt->_rotation, rot);
-	dt->_prdshape = dt->_scale * dt->_prdshape * rot;
+	/*cv::Mat_<double> rot;
+	cv::transpose(dt->_rotation, rot);*/
+	dt->_prdshape = dt->_scale * dt->_prdshape * dt->_rotation.t();
 }
 

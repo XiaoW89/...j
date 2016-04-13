@@ -69,9 +69,9 @@ struct DT
 {
 	cv::Mat_<float> _gtshape; //ground-truth shape, and equal to meanshape if it is negtive sample 
 	cv::Mat_<float> _prdshape; //predicted shape(current shape)£¬intialized with mean shape
-	cv::Mat_<double>_rotation; //The invese transformation matrix
+	cv::Mat_<float>_rotation; //The invese transformation matrix
 	cv::Mat_<double>_pixDiffFeat; //Only contain current weak classifier's feature£» 
-	cv::Mat_<double>_regressionTarget; 
+	cv::Mat_<float>_regressionTarget; 
 	cv::Mat_<float>_LBF; 
 
 
@@ -267,7 +267,7 @@ void DrawPredictImage(cv::Mat& image, cv::Mat_<float>& shape);
 cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::Mat_<float>&gtp_x, const cv::Mat_<float>&gtp_y, int * left_eye, int* right_eye, const int numRbbox, const int numpt);
 cv::Mat_<float> calcRME(const std::vector<cv::Mat_<float>>&X_updated, const cv::Mat_<float>&gtp_x, const cv::Mat_<float>&gtp_y, int * left_eye, int* right_eye, const int numRbbox, const int numpt, const cv::Mat_<float>mask);
 void getSimilarityTransform(const cv::Mat_<double>& shape_to, const cv::Mat_<double>& shape_from,
-	cv::Mat_<double>& rotation, double& scale);
+	cv::Mat_<float>& rotation, double& scale);
 DT* GeNegSamp(MYDATA* const md, const PARAMETERS& pm);
 void calcRot_target(const cv::Mat_<float>& ms, DT* dt);
 void UpdateShape(const cv::Mat_<float>& weights, DT* dt);

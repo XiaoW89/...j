@@ -7,8 +7,8 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//¡­¡­Preparing data¡­¡­//
-	std::string dr = "F:\\test\\test";
-	const int n_pt = 17;
+	std::string dr = "H:\\test\\test";
+	const int n_pt = 5;
 	MYDATA* md = new MYDATA;
 	{
 		//Loading data
@@ -28,7 +28,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		pm._L = n_pt;
 		pm._T = 5;
-		pm._N = 425;
+		pm._N = 75;
 		pm._K = pm._N / pm._T;
 
 		pm._n_p = md->_labels["POSITIVE"].size();
@@ -43,7 +43,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		pm._radius.push_back(0.2);
 		pm._radius.push_back(0.1);
 		pm._radius.push_back(0.08);
-
 	}
 
 	//¡­¡­Train JDA¡­¡­//

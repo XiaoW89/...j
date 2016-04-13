@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 h:\gitspace\jda_ex\jda_trial\x64\release\jda_trial.pch
 h:\gitspace\jda_ex\jda_trial\x64\release\vc120.pdb
 h:\gitspace\jda_ex\jda_trial\x64\release\stdafx.obj
@@ -20,20 +19,3 @@ h:\gitspace\jda_ex\jda_trial\x64\release\jda_trial.tlog\cl.write.1.tlog
 h:\gitspace\jda_ex\jda_trial\x64\release\jda_trial.tlog\link.command.1.tlog
 h:\gitspace\jda_ex\jda_trial\x64\release\jda_trial.tlog\link.read.1.tlog
 h:\gitspace\jda_ex\jda_trial\x64\release\jda_trial.tlog\link.write.1.tlog
-=======
-f:\jda_ex\jda_trial\x64\release\jda_trial.pch
-f:\jda_ex\jda_trial\x64\release\vc120.pdb
-f:\jda_ex\jda_trial\x64\release\stdafx.obj
-f:\jda_ex\jda_trial\x64\release\dscal.obj
-f:\jda_ex\jda_trial\x64\release\dnrm2.obj
-f:\jda_ex\jda_trial\x64\release\ddot.obj
-f:\jda_ex\jda_trial\x64\release\daxpy.obj
-f:\jda_ex\jda_trial\x64\release\tron.obj
-f:\jda_ex\jda_trial\x64\release\linear.obj
-f:\jda_ex\jda_trial\x64\release\jda_trial.obj
-f:\jda_ex\jda_trial\x64\release\jda.obj
-f:\jda_ex\jda_trial\x64\release\utils.obj
-f:\jda_ex\jda_trial\x64\release\jda_trial.tlog\cl.command.1.tlog
-f:\jda_ex\jda_trial\x64\release\jda_trial.tlog\cl.read.1.tlog
-f:\jda_ex\jda_trial\x64\release\jda_trial.tlog\cl.write.1.tlog
->>>>>>> 3507c7d0fbb7c889f87b7c94e945699e3afd0db7

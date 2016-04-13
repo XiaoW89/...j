@@ -959,14 +959,12 @@ void getlocallbf(const Node* nd, DT* dt)
 
 void GetGlobalLBF(MYDATA* md, RandomForest& rf, DT* dt)
 {
-	std::deque<DT*> dt_temp;
-	dt_temp.push_back(dt);
-	dt->_LBF = cv::Mat::zeros(1, rf._trees_num_per_forest*(rf._landmark_index + 1), CV_32FC1);
+	dt->_LBF = cv::Mat::ones(1, rf._all_leaf_nodes+1, CV_32FC1);
 
 	for (int i = 0; i < rf.trees_.size(); i++)
 	{
 		if (0 == (i%rf._trees_num_per_forest))
-			rf.GeneratePixelDiff(md, dt_temp, rf._local_position[i / rf._trees_num_per_forest]);
+			rf.GeneratePixelDiff(md, dt, rf._local_position[i / rf._trees_num_per_forest]);
 		getlocallbf(rf.trees_[i / rf._trees_num_per_forest][i%rf._trees_num_per_forest], dt);
 	}
 }
